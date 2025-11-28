@@ -61,6 +61,7 @@ const Sidebar = () => {
     }
   ];
 
+export default function SidebarNav() {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       

@@ -34,13 +34,10 @@ import UnderRegulation from "./pages/UnderRegulation.jsx";
 import PublicDisclosureUnderLiquidityRisk from "./pages/PublicDisclosureUnderLiquidityRisk.jsx";
 import OtherDisclosures from "./pages/OtherDisclosures.jsx";
 import SarfaesiAuctionNotices from "./pages/SarfaesiAuctionNotices.jsx";
-import Dashboard from "./components/admin/Dashboard.jsx";
 
 // Admin Pages (add your real pages)
 // import AdminDashboard from "./admin/AdminDashboard.jsx";   
 // import AdminUsers from "./admin/AdminUsers.jsx";
-
-
 
 function App() {
   return (
@@ -83,8 +80,9 @@ function App() {
 
       {/* ⭐ ADMIN ROUTES */}
       <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="dashboard" element={<Dashboard />} />
+        {/* <Route index element={<Admin />} />
+        <Route path="users" element={<AdminUsers />} /> */}
+        {/* Add more admin pages here */}   
       </Route>
 
     </Routes>
@@ -92,5 +90,3 @@ function App() {
 }
 
 export default App;
-
-
