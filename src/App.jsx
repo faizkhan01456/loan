@@ -60,6 +60,11 @@ import PdcReceipt from "./pages/adminPages/Lms/PdcReceipt.jsx";
 import Customer from "./pages/adminPages/Lms/Customer.jsx";
 import Disbursement from "./pages/adminPages/Lms/Disbursement.jsx";
 import Schedule from "./pages/adminPages/Lms/Schedule.jsx";
+import LoanCloser from "./pages/adminPages/Lms/LoanCloser.jsx";
+import DueList from "./pages/adminPages/Lms/DueList.jsx";
+import Task from "./pages/adminPages/Lms/Task.jsx";
+import Waiver from "./pages/adminPages/Lms/Waiver.jsx";
+import Repossess from "./pages/adminPages/Lms/Repossess.jsx";
 
 
 function App() {
@@ -121,6 +126,11 @@ function App() {
         <Route path="Customer" element={<Customer />} />
         <Route path="Disbursement" element={<Disbursement />} />
         <Route path="Schedule" element={<Schedule />} />
+        <Route path="loan-closer" element={<LoanCloser />} />
+        <Route path="due-list" element={<DueList />} />
+        <Route path="task" element={<Task />} />
+        <Route path="waiver" element={<Waiver />} />
+        <Route path="repossess" element={<Repossess />} />
 
 
         //Configuration
