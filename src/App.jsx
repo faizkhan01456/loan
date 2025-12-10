@@ -50,7 +50,6 @@ import Borrowers from "./pages/adminPages/Borrowers.jsx";
 import Reports from "./pages/adminPages/Reports.jsx";
 import Configuration from "./pages/adminPages/Configuration.jsx";
 import AdminRoles from "./pages/adminPages/AdminRoles.jsx";
-import SystemSettings from "./pages/adminPages/SystemSettings.jsx";
 import PartnerAdd from "./pages/adminPages/Configuration/PartnerAdd.jsx";
 import EmployeeAdd from "./pages/adminPages/Configuration/EmployeeAdd.jsx";
 import LoanEntry from "./pages/adminPages/Lms/LoanEntry.jsx";
@@ -92,6 +91,10 @@ import SalesTargetAchievement from "./pages/adminPages/reports/SalesTargetAndAch
 import SalesTargetAndAchievement from "./pages/adminPages/reports/SalesTargetAndAchievement.jsx";
 import NpaReports from "./pages/adminPages/reports/NpaReports.jsx";
 import CrcReport from "./pages/adminPages/reports/CrcReport.jsx";
+import CompanyDetails from "./pages/adminPages/SystemSettings/CompanyDetails.jsx";
+import LoanConfiguration from "./pages/adminPages/SystemSettings/LoanConfiguration.jsx";
+import SecuritySettings from "./pages/adminPages/SystemSettings/SecuritySettings.jsx";
+import PaymentSettings from "./pages/adminPages/SystemSettings/PaymentSettings.jsx";
 
 
 function App() {
@@ -143,7 +146,6 @@ function App() {
         <Route path="reports" element={<Reports />} />
         <Route path="configuration" element={<Configuration />} />
         <Route path="admin-roles" element={<AdminRoles />} />
-        <Route path="system-settings" element={<SystemSettings />} />
 
         //LMS 
         <Route path="loanEntry" element={<LoanEntry />} />
@@ -194,6 +196,13 @@ function App() {
         <Route path="reports/sales-target-and-achievement" element={<SalesTargetAndAchievement />} />
         <Route path="reports/npa-reports" element={<NpaReports />} />
         <Route path="reports/crc-report" element={<CrcReport />} />
+
+        //System Settings
+        <Route path="system-setting/company-details" element={<CompanyDetails />} />
+        <Route path="system-setting/loan-configuration" element={<LoanConfiguration />} />
+        <Route path="system-setting/security-settings" element={<SecuritySettings />} />
+        <Route path="system-setting/payment-settings" element={<PaymentSettings />} />
+
       </Route>
 
     </Routes>

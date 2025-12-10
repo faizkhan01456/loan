@@ -22,7 +22,7 @@ const noticeData = [
     downloadLink: "/notices/notice_agm_15062024.pdf",
     type: "AGM"
   },
-  // image_7faf25.png से अन्य नोटिस
+ 
   { 
     name: "Notice of EOGM FCPL_29.02.2024", 
     downloadLink: "/notices/notice_eogm_29022024.pdf",

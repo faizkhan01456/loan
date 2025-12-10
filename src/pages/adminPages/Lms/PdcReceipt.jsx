@@ -16,244 +16,438 @@ import {
   MoreVertical,
   CheckCircle,
   AlertTriangle,
-  RotateCcw, // Using the proper Lucide icon name for consistency
+  RefreshCw,
   Grid,
   ClipboardList,
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
+  Printer,
+  Share2,
+  BarChart3,
+  Calendar,
+  User,
+  Building,
+  Shield,
+  ArrowUpDown,
+  Settings,
+  Bell,
+  HelpCircle,
+  ExternalLink,
+  CreditCard,
+  Repeat,
+  Layers,
+  FileSpreadsheet,
+  Package,
+  ShieldCheck,
+  TrendingUp,
+  PieChart,
+  Calculator,
+  Smartphone,
+  Mail,
+  MapPin,
+  Phone,
+  AlertCircle,
+  Lock,
+  Unlock,
+  CalendarDays,
+  ChevronLeft,
+  ChevronDown,
+  Star,
+  Award,
+  Target,
+  Zap,
+  Wind,
+  Cloud,
+  Moon,
+  Sun,
+  Watch
 } from "lucide-react";
 
 export default function PdcReceipt() {
-  const tabs = [
-    { name: "PDC Repayment Process", icon: ListChecks },
-    { name: "PDC Cheque Detail", icon: FileText },
-    { name: "Receipt Entry", icon: ClipboardCheck },
-    { name: "Receipt Book Management", icon: BookOpen },
-    { name: "Receipt Book Detail", icon: Search },
-    { name: "Receipt Bulk Import", icon: Upload },
-    { name: "Team Book Distribution", icon: Users },
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [showAddPDC, setShowAddPDC] = useState(false);
+  const [selectedCheque, setSelectedCheque] = useState(null);
+  const [receiptBookFilter, setReceiptBookFilter] = useState("all");
+  const [teamFilter, setTeamFilter] = useState("all");
+
+  // Navigation Tabs
+  const mainTabs = [
+    { id: "dashboard", label: "Dashboard", icon: Grid },
+    { id: "pdc", label: "PDC Management", icon: CreditCard },
+    { id: "receipts", label: "Receipts", icon: FileText },
+    { id: "books", label: "Receipt Books", icon: BookOpen },
+    { id: "team", label: "Team Distribution", icon: Users },
+    { id: "reports", label: "Reports", icon: BarChart3 }
   ];
 
-  const [activeTab, setActiveTab] = useState(tabs[0].name);
+  // PDC Status Options
+  const pdcStatuses = [
+    { id: "pending", label: "Pending", color: "bg-yellow-100 text-yellow-800", icon: Clock },
+    { id: "cleared", label: "Cleared", color: "bg-green-100 text-green-800", icon: CheckCircle },
+    { id: "bounced", label: "Bounced", color: "bg-red-100 text-red-800", icon: XCircle },
+    { id: "awaiting", label: "Awaiting Deposit", color: "bg-blue-100 text-blue-800", icon: Calendar },
+    { id: "processing", label: "Processing", color: "bg-purple-100 text-purple-800", icon: RefreshCw }
+  ];
 
-  // Info Card Component - Redesigned for a more premium look
-  const InfoCard = ({ title, value, icon: Icon, colorClass, bgClass, subtext }) => (
-    <div className="relative bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col justify-between transition-all hover:shadow-xl group">
-      <div className={`p-3 rounded-full ${bgClass} w-fit mb-3`}>
-        <Icon className={`w-6 h-6 ${colorClass}`} />
-      </div>
-      <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">{title}</p>
-      <h3 className="text-3xl font-extrabold text-gray-900 mb-1">{value}</h3>
-      <p className="text-xs text-gray-400">{subtext}</p>
-    </div>
-  );
+  // Receipt Status
+  const receiptStatuses = [
+    { id: "issued", label: "Issued", color: "bg-blue-100 text-blue-800" },
+    { id: "pending", label: "Pending", color: "bg-yellow-100 text-yellow-800" },
+    { id: "cancelled", label: "Cancelled", color: "bg-red-100 text-red-800" },
+    { id: "reconciled", label: "Reconciled", color: "bg-green-100 text-green-800" }
+  ];
 
-  // Status Chip - Redesigned with less border, more solid background for status
-  const StatusChip = ({ label, status }) => {
-    const styles = {
-      Cleared: "bg-green-100 text-green-700",
-      Pending: "bg-amber-100 text-amber-700",
-      Bounced: "bg-red-100 text-red-700",
-      "Awaiting Deposit": "bg-blue-100 text-blue-700",
-      default: "bg-gray-100 text-gray-700",
-    };
+  // Sample Data
+  const pdcCheques = [
+    {
+      id: "PDC-2024-001",
+      loanId: "LN-2024-015",
+      customerName: "Rahul Sharma",
+      amount: 25000,
+      dueDate: "2024-04-15",
+      depositDate: "2024-04-10",
+      status: "pending",
+      bank: "HDFC Bank",
+      chequeNo: "789456",
+      accountNo: "123456789012",
+      contact: "+91 9876543210",
+      email: "rahul@example.com"
+    },
+    {
+      id: "PDC-2024-002",
+      loanId: "LN-2024-018",
+      customerName: "Priya Patel",
+      amount: 18000,
+      dueDate: "2024-04-20",
+      depositDate: "2024-04-15",
+      status: "cleared",
+      bank: "ICICI Bank",
+      chequeNo: "654321",
+      accountNo: "987654321098",
+      contact: "+91 9123456780",
+      email: "priya@example.com"
+    },
+    {
+      id: "PDC-2024-003",
+      loanId: "LN-2024-022",
+      customerName: "Amit Verma",
+      amount: 35000,
+      dueDate: "2024-04-05",
+      depositDate: "2024-04-01",
+      status: "bounced",
+      bank: "SBI",
+      chequeNo: "321654",
+      accountNo: "456123789012",
+      contact: "+91 9988776655",
+      email: "amit@example.com"
+    },
+    {
+      id: "PDC-2024-004",
+      loanId: "LN-2024-025",
+      customerName: "Neha Gupta",
+      amount: 42000,
+      dueDate: "2024-04-25",
+      depositDate: "2024-04-20",
+      status: "awaiting",
+      bank: "Axis Bank",
+      chequeNo: "987123",
+      accountNo: "321654987012",
+      contact: "+91 8899776655",
+      email: "neha@example.com"
+    },
+    {
+      id: "PDC-2024-005",
+      loanId: "LN-2024-028",
+      customerName: "Rajesh Kumar",
+      amount: 19500,
+      dueDate: "2024-04-12",
+      depositDate: "2024-04-08",
+      status: "processing",
+      bank: "Kotak Bank",
+      chequeNo: "456789",
+      accountNo: "654987321012",
+      contact: "+91 7766554433",
+      email: "rajesh@example.com"
+    }
+  ];
 
+  const receiptBooks = [
+    {
+      id: "RB-2024-001",
+      seriesFrom: "10001",
+      seriesTo: "10050",
+      assignedTo: "Ramesh Kumar",
+      issuedDate: "2024-01-10",
+      usedCount: 23,
+      totalCount: 50,
+      status: "active",
+      lastUsed: "2024-04-01"
+    },
+    {
+      id: "RB-2024-002",
+      seriesFrom: "10051",
+      seriesTo: "10100",
+      assignedTo: "Suresh Patel",
+      issuedDate: "2024-01-15",
+      usedCount: 48,
+      totalCount: 50,
+      status: "full",
+      lastUsed: "2024-04-10"
+    },
+    {
+      id: "RB-2024-003",
+      seriesFrom: "10101",
+      seriesTo: "10150",
+      assignedTo: "Priya Sharma",
+      issuedDate: "2024-02-01",
+      usedCount: 15,
+      totalCount: 50,
+      status: "active",
+      lastUsed: "2024-04-05"
+    }
+  ];
+
+  const teams = [
+    {
+      id: "team-north",
+      name: "North Sales Team",
+      manager: "Rajesh Mehta",
+      memberCount: 8,
+      activeBooks: 25,
+      totalBooks: 32,
+      utilization: 78,
+      performance: 92
+    },
+    {
+      id: "team-south",
+      name: "South Operations",
+      manager: "Anita Reddy",
+      memberCount: 6,
+      activeBooks: 18,
+      totalBooks: 24,
+      utilization: 75,
+      performance: 88
+    },
+    {
+      id: "team-west",
+      name: "West Collection",
+      manager: "Vikram Singh",
+      memberCount: 5,
+      activeBooks: 12,
+      totalBooks: 20,
+      utilization: 60,
+      performance: 85
+    }
+  ];
+
+  // Dashboard Stats
+  const dashboardStats = [
+    {
+      title: "Total PDC Value",
+      value: "₹ 5.75 L",
+      change: "+12.5%",
+      icon: CreditCard,
+      color: "blue",
+      trend: "up"
+    },
+    {
+      title: "Cheques Due (7 Days)",
+      value: "18",
+      change: "+3",
+      icon: Clock,
+      color: "yellow",
+      trend: "up"
+    },
+    {
+      title: "Bounced Cheques",
+      value: "4",
+      change: "-1",
+      icon: XCircle,
+      color: "red",
+      trend: "down"
+    },
+    {
+      title: "Receipts Generated",
+      value: "1,248",
+      change: "+18%",
+      icon: FileText,
+      color: "green",
+      trend: "up"
+    },
+    {
+      title: "Active Books",
+      value: "42",
+      change: "+5",
+      icon: BookOpen,
+      color: "purple",
+      trend: "up"
+    },
+    {
+      title: "Team Utilization",
+      value: "78%",
+      change: "+4.2%",
+      icon: TrendingUp,
+      color: "indigo",
+      trend: "up"
+    }
+  ];
+
+  // Recent Activities
+  const recentActivities = [
+    {
+      id: 1,
+      type: "pdc_deposited",
+      title: "PDC Cheque Deposited",
+      description: "PDC-2024-012 deposited for ₹25,000",
+      time: "2 hours ago",
+      icon: CreditCard,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50"
+    },
+    {
+      id: 2,
+      type: "receipt_issued",
+      title: "Receipt Issued",
+      description: "Receipt #10234 issued to Rahul Sharma",
+      time: "4 hours ago",
+      icon: FileText,
+      color: "text-green-600",
+      bgColor: "bg-green-50"
+    },
+    {
+      id: 3,
+      type: "cheque_bounced",
+      title: "Cheque Bounced",
+      description: "PDC-2024-008 bounced - ₹18,500",
+      time: "1 day ago",
+      icon: AlertCircle,
+      color: "text-red-600",
+      bgColor: "bg-red-50"
+    },
+    {
+      id: 4,
+      type: "book_assigned",
+      title: "Book Assigned",
+      description: "RB-2024-025 assigned to Priya Sharma",
+      time: "2 days ago",
+      icon: BookOpen,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
+    }
+  ];
+
+  // Helper Functions
+  const getStatusBadge = (status) => {
+    const statusConfig = [...pdcStatuses, ...receiptStatuses].find(s => s.id === status);
+    if (!statusConfig) return null;
+    
+    const Icon = statusConfig.icon;
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${styles[status] || styles.default}`}>
-        {label}
+      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}>
+        {Icon && <Icon className="w-3 h-3" />}
+        {statusConfig.label}
       </span>
     );
   };
 
-  const mockCheques = [
-    { id: "CHQ001", loan: "LN101", amount: 15500, date: "2025-03-15", status: "Cleared", bank: "HDFC Bank" },
-    { id: "CHQ002", loan: "LN102", amount: 22000, date: "2025-04-01", status: "Pending", bank: "ICICI Bank" },
-    { id: "CHQ003", loan: "LN103", amount: 10100, date: "2025-03-20", status: "Bounced", bank: "SBI" },
-    { id: "CHQ004", loan: "LN104", amount: 45000, date: "2025-04-10", status: "Awaiting Deposit", bank: "Axis Bank" },
-    { id: "CHQ005", loan: "LN105", amount: 35000, date: "2025-04-12", status: "Pending", bank: "Kotak Bank" },
-  ];
-  
-  // Custom Button Component for cleaner look
-  const ToolbarButton = ({ children, icon: Icon, className = "" }) => (
-    <button className={`px-4 py-2 border border-gray-300 text-sm font-medium text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-colors ${className}`}>
-      <Icon size={16} /> {children}
-    </button>
-  );
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
 
-  // Render Tab Content
-  const renderContent = () => {
+  // Tab Content Renderer
+  const renderTabContent = () => {
     switch (activeTab) {
-
-      // ------------------------------------------------------
-      // 1. PDC Repayment Process (Dashboard View)
-      // ------------------------------------------------------
-      case "PDC Repayment Process":
+      case "dashboard":
         return (
-          <div className="space-y-8 animate-in fade-in duration-500">
-
+          <div className="space-y-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <InfoCard title="Total PDC Value" value="₹ 5.20 L" icon={DollarSign} colorClass="text-blue-600" bgClass="bg-blue-50" subtext="Across all active loans" />
-              <InfoCard title="Cheques Due (7D)" value="12" icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-50" subtext="Immediate priority actions" />
-              <InfoCard title="Bounced (30D)" value="2" icon={XCircle} colorClass="text-red-600" bgClass="bg-red-50" subtext="Requires follow-up" />
-              <InfoCard title="Awaiting Deposit" value="5" icon={ClipboardList} colorClass="text-green-600" bgClass="bg-green-50" subtext="Ready for bank submission" />
-            </div>
-
-            {/* Recent Activity Card */}
-            <div className="bg-white rounded-xl shadow-lg border">
-              <div className="p-6 border-b flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <RotateCcw size={20} className="text-blue-600" /> Recent PDC Activity
-                </h3>
-                <button className="text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center">
-                  View Full History <ChevronRight size={16} />
-                </button>
-              </div>
-
-              <div className="divide-y divide-gray-100">
-                {[
-                  { id: "CHQ004", loan: "LN104", amount: "₹ 45,000", status: "Awaiting Deposit", date: "Due: Apr 05, 2025", icon: Clock, color: "text-blue-500", bg: "bg-blue-50" },
-                  { id: "CHQ005", loan: "LN105", amount: "₹ 35,000", status: "Cleared", date: "Cleared: Mar 28, 2025", icon: CheckCircle, color: "text-green-500", bg: "bg-green-50" },
-                  { id: "CHQ003", loan: "LN103", amount: "₹ 10,100", status: "Bounced", date: "Returned: Mar 20, 2025", icon: AlertTriangle, color: "text-red-500", bg: "bg-red-50" },
-                  { id: "CHQ002", loan: "LN102", amount: "₹ 22,000", status: "Pending", date: "Due: Apr 01, 2025", icon: Clock, color: "text-amber-500", bg: "bg-amber-50" },
-                ].map((item, idx) => (
-                  <div key={idx} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-2 rounded-lg ${item.bg}`}>
-                        <item.icon className={`w-5 h-5 ${item.color}`} />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-800 text-sm">{item.id} - Loan {item.loan}</p>
-                        <p className="text-xs text-gray-500">{item.date} • <span className="font-bold">{item.amount}</span></p>
-                      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              {dashboardStats.map((stat, index) => (
+                <div key={index} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`p-2 rounded-lg ${stat.color === 'blue' ? 'bg-blue-50 text-blue-600' : 
+                        stat.color === 'green' ? 'bg-green-50 text-green-600' :
+                        stat.color === 'red' ? 'bg-red-50 text-red-600' :
+                        stat.color === 'yellow' ? 'bg-yellow-50 text-yellow-600' :
+                        stat.color === 'purple' ? 'bg-purple-50 text-purple-600' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <stat.icon className="w-5 h-5" />
                     </div>
-                    <StatusChip label={item.status} status={item.status} />
+                    <span className={`text-xs font-medium ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+                      {stat.change}
+                    </span>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-
-      // ------------------------------------------------------
-      // 2. PDC Cheque Detail (Table View)
-      // ------------------------------------------------------
-      case "PDC Cheque Detail":
-        return (
-          <div className="bg-white rounded-xl shadow-lg border animate-in fade-in duration-500">
-
-            {/* Toolbar - Use ToolbarButton component */}
-            <div className="p-4 border-b flex flex-col md:flex-row gap-4 justify-between items-center bg-gray-50 rounded-t-xl">
-              <div className="relative w-full md:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search Cheque or Loan ID..."
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500/50 transition-colors"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <ToolbarButton icon={Filter}>Filter Status</ToolbarButton>
-                <ToolbarButton icon={Download}>Export CSV</ToolbarButton>
-              </div>
-            </div>
-
-            {/* CHEQUE TABLE */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-100 border-b border-gray-200 text-gray-600 uppercase tracking-wider">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Cheque ID</th>
-                    <th className="px-6 py-4 font-semibold">Loan Info</th>
-                    <th className="px-6 py-4 font-semibold">Bank</th>
-                    <th className="px-6 py-4 font-semibold">Amount</th>
-                    <th className="px-6 py-4 font-semibold">Due Date</th>
-                    <th className="px-6 py-4 font-semibold">Status</th>
-                    <th className="px-6 py-4 text-right font-semibold">Action</th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-gray-100">
-                  {mockCheques.map((cheque) => (
-                    <tr key={cheque.id} className="hover:bg-blue-50/50 transition-colors">
-                      <td className="px-6 py-4 font-mono text-gray-700">{cheque.id}</td>
-                      <td className="px-6 py-4 text-blue-600 font-medium">{cheque.loan}</td>
-                      <td className="px-6 py-4 text-gray-600">{cheque.bank}</td>
-                      <td className="px-6 py-4 font-bold text-gray-900">₹ {cheque.amount.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-gray-500">{cheque.date}</td>
-                      <td className="px-6 py-4">
-                        <StatusChip label={cheque.status} status={cheque.status} />
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button className="p-1.5 text-gray-500 hover:bg-blue-100 rounded-full transition-colors">
-                          <MoreVertical size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-
-              </table>
-            </div>
-          </div>
-        );
-
-      // ------------------------------------------------------
-      // 3. Receipt Entry (Form View)
-      // ------------------------------------------------------
-      case "Receipt Entry":
-        return (
-          <div className="max-w-3xl mx-auto animate-in slide-in-from-right duration-500">
-            <div className="bg-white p-8 rounded-xl shadow-lg border">
-
-              <h2 className="text-2xl font-bold flex items-center gap-3 mb-8 pb-4 border-b">
-                <ClipboardCheck className="text-blue-600 w-6 h-6" /> Create New Receipt
-              </h2>
-
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                  <div className="col-span-1 md:col-span-2">
-                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Loan / Customer ID</label>
-                    <input type="text" placeholder="Search customer loan number..." className="w-full p-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500/50 transition-colors" />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Amount (₹)</label>
-                    <input type="number" placeholder="0.00" className="w-full p-3 border border-gray-300 rounded-xl font-bold text-lg" />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Date</label>
-                    <input type="date" className="w-full p-3 border border-gray-300 rounded-xl" />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Payment Mode</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-xl bg-white appearance-none">
-                      <option>Cash</option>
-                      <option>UPI</option>
-                      <option>Cheque</option>
-                      <option>NEFT/IMPS</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Reference No. (Cheque/Txn)</label>
-                    <input type="text" placeholder="Enter reference number" className="w-full p-3 border border-gray-300 rounded-xl" />
-                  </div>
-
-                  <div className="col-span-1 md:col-span-2">
-                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Remarks / Notes</label>
-                    <textarea rows="3" placeholder="Any specific details about the payment..." className="w-full p-3 border border-gray-300 rounded-xl"></textarea>
-                  </div>
-
+                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
+                  <p className="text-sm text-gray-600">{stat.title}</p>
                 </div>
+              ))}
+            </div>
 
-                <div className="pt-6 flex justify-end gap-4 border-t">
-                  <button className="px-6 py-2.5 rounded-xl text-gray-600 font-medium hover:bg-gray-100 transition-colors">Cancel</button>
-                  <button className="px-8 py-2.5 bg-blue-600 text-white font-semibold rounded-xl shadow-md hover:bg-blue-700 transition-colors">
-                    <span className="flex items-center gap-2">Generate Receipt <ChevronRight size={16} /></span>
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">Recent PDC Activities</h3>
+                    <button className="text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center gap-1">
+                      View All <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {recentActivities.map((activity) => (
+                      <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                        <div className={`p-2 rounded-lg ${activity.bgColor}`}>
+                          <activity.icon className={`w-5 h-5 ${activity.color}`} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{activity.title}</h4>
+                          <p className="text-sm text-gray-600">{activity.description}</p>
+                        </div>
+                        <span className="text-xs text-gray-500">{activity.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Quick Actions</h3>
+                <div className="space-y-3">
+                  <button 
+                    onClick={() => setActiveTab("pdc")}
+                    className="w-full flex items-center gap-3 p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    <CreditCard className="w-5 h-5" />
+                    <span className="font-medium">Add New PDC</span>
+                  </button>
+                  <button className="w-full flex items-center gap-3 p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
+                    <FileText className="w-5 h-5" />
+                    <span className="font-medium">Generate Receipt</span>
+                  </button>
+                  <button className="w-full flex items-center gap-3 p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors">
+                    <BookOpen className="w-5 h-5" />
+                    <span className="font-medium">Issue Book</span>
+                  </button>
+                  <button className="w-full flex items-center gap-3 p-3 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors">
+                    <Download className="w-5 h-5" />
+                    <span className="font-medium">Export Reports</span>
                   </button>
                 </div>
               </div>
@@ -261,247 +455,588 @@ export default function PdcReceipt() {
           </div>
         );
 
-      // ------------------------------------------------------
-      // 4. Receipt Book Management
-      // ------------------------------------------------------
-      case "Receipt Book Management":
+      case "pdc":
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in duration-500">
-
-            {/* Issue Card */}
-            <div className="bg-white p-8 rounded-xl border shadow-lg">
-              <h3 className="font-extrabold text-2xl text-gray-900 mb-2">Issue New Receipt Book</h3>
-              <p className="text-sm text-gray-500 mb-6">Assign a fresh, auditable series to a field agent.</p>
-
-              <div className="space-y-5">
-                <div>
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Book Series ID</label>
-                  <input type="text" placeholder="e.g. RB-2024-002" className="w-full p-3 border border-gray-300 rounded-xl" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Assign to User ID / Name</label>
-                  <input type="text" placeholder="Search user ID or name" className="w-full p-3 border border-gray-300 rounded-xl" />
-                </div>
-                
-                <button className="w-full py-3 bg-green-600 text-white font-semibold rounded-xl shadow-md hover:bg-green-700 transition-colors mt-4">
-                  Issue & Activate Book
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">PDC Management</h2>
+                <p className="text-gray-600">Manage post-dated cheques and track their status</p>
+              </div>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowAddPDC(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add PDC
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Download className="w-5 h-5" />
+                  Export
                 </button>
               </div>
             </div>
 
-            {/* Return Card */}
-            <div className="bg-white p-8 rounded-xl border shadow-lg">
-              <h3 className="font-extrabold text-2xl text-gray-900 mb-2">Return & Audit Book</h3>
-              <p className="text-sm text-gray-500 mb-6">Process a return and reconcile the used receipt range.</p>
-
-              <div className="space-y-5">
-                <div>
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Book ID to Return</label>
-                  <input type="text" placeholder="e.g. RB-2024-001" className="w-full p-3 border border-gray-300 rounded-xl" />
+            {/* Filters */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="text"
+                      placeholder="Search by cheque ID, loan ID, customer name..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    />
+                  </div>
                 </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg border flex justify-between text-sm">
-                  <span><span className="font-bold">Issued To:</span> Ramesh Kumar</span>
-                  <span><span className="font-bold">Used Count:</span> 48/50</span>
+                <div className="flex gap-3">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  >
+                    <option value="all">All Status</option>
+                    {pdcStatuses.map(status => (
+                      <option key={status.id} value={status.id}>{status.label}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <Filter className="w-5 h-5" />
+                    More Filters
+                  </button>
                 </div>
+              </div>
+            </div>
 
-                <button className="w-full py-3 bg-red-600 text-white font-semibold rounded-xl shadow-md hover:bg-red-700 transition-colors mt-4">
-                  Confirm Return & Start Audit
+            {/* PDC Table */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cheque Details</th>
+                      <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loan Info</th>
+                      <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+                      <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {pdcCheques.map((cheque) => (
+                      <tr key={cheque.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="py-4 px-6">
+                          <div>
+                            <div className="font-medium text-gray-900">{cheque.id}</div>
+                            <div className="text-sm text-gray-600">{cheque.bank}</div>
+                            <div className="text-xs text-gray-500">Chq: {cheque.chequeNo}</div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div>
+                            <div className="font-medium text-gray-900">{cheque.loanId}</div>
+                            <div className="text-sm text-gray-600">{cheque.customerName}</div>
+                            <div className="text-xs text-gray-500 flex items-center gap-1">
+                              <Phone className="w-3 h-3" /> {cheque.contact}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="font-bold text-gray-900">{formatCurrency(cheque.amount)}</div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="space-y-1">
+                            <div className="text-sm">
+                              <span className="text-gray-600">Due:</span>{' '}
+                              <span className="font-medium">{formatDate(cheque.dueDate)}</span>
+                            </div>
+                            <div className="text-sm">
+                              <span className="text-gray-600">Deposit:</span>{' '}
+                              <span className="font-medium">{formatDate(cheque.depositDate)}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          {getStatusBadge(cheque.status)}
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => setSelectedCheque(cheque)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Edit">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            <button className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "receipts":
+        return (
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Receipt Management</h2>
+                <p className="text-gray-600">Generate and manage payment receipts</p>
+              </div>
+              <div className="flex gap-3">
+                <button className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                  <Plus className="w-5 h-5" />
+                  New Receipt
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Upload className="w-5 h-5" />
+                  Bulk Import
                 </button>
               </div>
             </div>
+
+            {/* Receipt Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Recent Receipts</h3>
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-50 rounded-lg">
+                            <FileText className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">Receipt #R{10000 + i}</div>
+                            <div className="text-sm text-gray-600">Rahul Sharma • Loan LN-2024-01{i}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <div className="font-bold text-gray-900">₹25,000</div>
+                            <div className="text-xs text-gray-500">Apr 12, 2024</div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
+                              <Printer className="w-4 h-4" />
+                            </button>
+                            <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg">
+                              <Share2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Receipt Statistics</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <span className="text-gray-700">Total Receipts</span>
+                    <span className="font-bold text-blue-600">1,248</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <span className="text-gray-700">This Month</span>
+                    <span className="font-bold text-green-600">342</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                    <span className="text-gray-700">Pending Reconciliation</span>
+                    <span className="font-bold text-yellow-600">18</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                    <span className="text-gray-700">Average Amount</span>
+                    <span className="font-bold text-purple-600">₹21,500</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         );
 
-      // ------------------------------------------------------
-      // 5. Receipt Book Detail (Search/View)
-      // ------------------------------------------------------
-      case "Receipt Book Detail":
+      case "books":
         return (
-          <div className="max-w-2xl mx-auto animate-in slide-in-from-bottom duration-500">
-            <div className="bg-white rounded-xl border shadow-lg overflow-hidden">
-
-              <div className="p-8 text-center bg-blue-50/50 border-b">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Receipt Book Tracker</h2>
-                <p className="text-gray-600 mb-6">Enter Book ID to view utilization and status.</p>
-
-                <div className="relative max-w-sm mx-auto">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" size={18} />
-                  <input type="text" placeholder="e.g. RB-2024-001" className="w-full pl-12 pr-4 py-3 border border-blue-200 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition-colors" />
-                </div>
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Receipt Books</h2>
+                <p className="text-gray-600">Manage receipt book distribution and tracking</p>
               </div>
+              <div className="flex gap-3">
+                <button className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                  <Plus className="w-5 h-5" />
+                  Issue New Book
+                </button>
+              </div>
+            </div>
 
-              {/* Mock Details Panel */}
-              <div className="p-8">
-                <div className="bg-white border-4 border-blue-100 p-6 rounded-xl shadow-xl">
-                  <div className="flex justify-between items-start mb-5">
-
+            {/* Books Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {receiptBooks.map((book) => (
+                <div key={book.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="font-extrabold text-2xl text-blue-800 mb-1">Book #RB-2024-001</h3>
-                      <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">ACTIVE</span>
+                      <h3 className="font-bold text-gray-900">{book.id}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          book.status === 'active' ? 'bg-green-100 text-green-800' :
+                          book.status === 'full' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {book.status.charAt(0).toUpperCase() + book.status.slice(1)}
+                        </span>
+                      </div>
                     </div>
-
-                    <div className="text-right">
-                      <p className="text-xs text-gray-500 uppercase font-semibold">Assigned To</p>
-                      <p className="font-bold text-lg text-gray-900">Ramesh Kumar</p>
+                    <div className="p-2 bg-purple-50 rounded-lg">
+                      <BookOpen className="w-5 h-5 text-purple-600" />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm border-t border-blue-100 pt-5">
+                  <div className="space-y-3">
                     <div>
-                      <span className="text-xs text-gray-500 uppercase">Series Range</span><br />
-                      <span className="font-medium text-gray-800">10001 - 10050</span>
+                      <div className="text-sm text-gray-600">Series Range</div>
+                      <div className="font-medium text-gray-900">{book.seriesFrom} - {book.seriesTo}</div>
                     </div>
                     <div>
-                      <span className="text-xs text-gray-500 uppercase">Issued Date</span><br />
-                      <span className="font-medium text-gray-800">Jan 10, 2025</span>
+                      <div className="text-sm text-gray-600">Assigned To</div>
+                      <div className="font-medium text-gray-900">{book.assignedTo}</div>
                     </div>
                     <div>
-                      <span className="text-xs text-gray-500 uppercase">Used Receipts</span><br />
-                      <span className="text-3xl font-extrabold text-blue-600">23 / 50</span>
-                    </div>
-                    <div>
-                      <span className="text-xs text-gray-500 uppercase">Last Receipt No.</span><br />
-                      <span className="font-medium text-gray-800">10023</span>
+                      <div className="text-sm text-gray-600">Utilization</div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full" 
+                              style={{ width: `${(book.usedCount / book.totalCount) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {book.usedCount}/{book.totalCount}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>Issued: {formatDate(book.issuedDate)}</span>
+                      <span>Last Used: {formatDate(book.lastUsed)}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-
+              ))}
             </div>
           </div>
         );
 
-      // ------------------------------------------------------
-      // 6. Receipt Bulk Import
-      // ------------------------------------------------------
-      case "Receipt Bulk Import":
+      case "team":
         return (
-          <div className="h-96 flex flex-col items-center justify-center p-12 bg-white rounded-xl border-4 border-dashed border-gray-200 hover:border-blue-300 transition-colors duration-300 animate-in fade-in duration-500">
-
-            <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6 border-4 border-blue-200">
-              <Upload className="w-12 h-12 text-blue-600" />
-            </div>
-
-            <h2 className="text-3xl font-extrabold mb-2 text-gray-900">Drag & Drop Your File</h2>
-            <p className="text-gray-500 text-center mb-8">Supported formats: CSV, XLSX (max 10MB)</p>
-
-            <div className="flex gap-4">
-              <button className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl shadow-md hover:bg-blue-700 transition-colors">
-                Select File to Upload
-              </button>
-              <button className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-100 transition-colors">
-                <span className="flex items-center gap-2"><Download size={18} /> Download Template</span>
-              </button>
-            </div>
-            
-            <p className="text-xs text-gray-400 mt-6">Ensure data follows the required template structure.</p>
-
-          </div>
-        );
-
-      // ------------------------------------------------------
-      // 7. Team Book Distribution
-      // ------------------------------------------------------
-      case "Team Book Distribution":
-        return (
-          <div className="space-y-6 animate-in fade-in duration-500">
-
-            <div className="flex justify-between items-center pb-2 border-b">
-              <h2 className="text-2xl font-bold text-gray-900">Receipt Book Team Utilization</h2>
-              <button className="text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center">
-                View All Agents <ChevronRight size={16} />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
-              {/* Example Team Card */}
-              <div className="bg-white p-6 border rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-amber-100 text-amber-600 rounded-lg">
-                    <Users size={20} />
-                  </div>
-                  <h3 className="font-bold text-lg text-gray-900">North Sales Team</h3>
-                </div>
-
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-extrabold text-gray-900">25</span>
-                  <span className="text-sm text-gray-500">Active Books</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">15/25 books are below 20% capacity.</p>
-
-                <div className="mt-4 w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                  {/* Example: 2/3 (66%) utilization */}
-                  <div className="bg-amber-500 w-[66%] h-2.5 rounded-full" style={{ width: '66.6%' }}></div> 
-                </div>
-                <p className="text-xs text-amber-600 mt-2 font-semibold">66.6% Avg. Book Utilization</p>
-
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Team Distribution</h2>
+                <p className="text-gray-600">Monitor receipt book utilization across teams</p>
               </div>
-              
-              {/* More Team Cards could follow here */}
-              <div className="bg-white p-6 border rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-green-100 text-green-600 rounded-lg">
-                    <Users size={20} />
-                  </div>
-                  <h3 className="font-bold text-lg text-gray-900">South Operations</h3>
-                </div>
-
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-extrabold text-gray-900">18</span>
-                  <span className="text-sm text-gray-500">Active Books</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">2 books returned this week.</p>
-
-                <div className="mt-4 w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                  <div className="bg-green-500 w-[40%] h-2.5 rounded-full" style={{ width: '40%' }}></div> 
-                </div>
-                <p className="text-xs text-green-600 mt-2 font-semibold">40% Avg. Book Utilization</p>
-
+              <div className="flex gap-3">
+                <select
+                  value={teamFilter}
+                  onChange={(e) => setTeamFilter(e.target.value)}
+                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                >
+                  <option value="all">All Teams</option>
+                  <option value="north">North Team</option>
+                  <option value="south">South Team</option>
+                  <option value="west">West Team</option>
+                </select>
               </div>
-
             </div>
 
+            {/* Teams Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {teams.map((team) => (
+                <div key={team.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="font-bold text-lg text-gray-900">{team.name}</h3>
+                      <p className="text-sm text-gray-600">Manager: {team.manager}</p>
+                    </div>
+                    <div className={`p-3 rounded-full ${
+                      team.performance >= 90 ? 'bg-green-100 text-green-600' :
+                      team.performance >= 80 ? 'bg-yellow-100 text-yellow-600' :
+                      'bg-red-100 text-red-600'
+                    }`}>
+                      <span className="font-bold">{team.performance}%</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <div className="text-sm text-gray-600">Members</div>
+                        <div className="text-2xl font-bold text-gray-900">{team.memberCount}</div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <div className="text-sm text-gray-600">Active Books</div>
+                        <div className="text-2xl font-bold text-gray-900">{team.activeBooks}</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                        <span>Book Utilization</span>
+                        <span className="font-medium">{team.utilization}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            team.utilization >= 80 ? 'bg-green-600' :
+                            team.utilization >= 60 ? 'bg-yellow-600' :
+                            'bg-red-600'
+                          }`}
+                          style={{ width: `${team.utilization}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-200">
+                      <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+                        <Eye className="w-4 h-4" />
+                        View Team Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         );
 
       default:
-        return null;
+        return (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Coming Soon</h3>
+              <p className="text-gray-600">This section is under development</p>
+            </div>
+          </div>
+        );
     }
   };
 
-  // ------------------------------------------------------
-  // MAIN RETURN
-  // ------------------------------------------------------
   return (
-    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
-        
-      <h1 className="text-3xl font-extrabold text-gray-900 mb-6">PDC & Receipt Management System</h1>
-
-      {/* Tabs - Redesigned to look like modern pills */}
-      <div className="flex gap-3 overflow-x-auto pb-4">
-        {tabs.map((tab) => (
-          <button
-            key={tab.name}
-            onClick={() => setActiveTab(tab.name)}
-            className={`flex items-center flex-shrink-0 gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200
-              ${activeTab === tab.name
-                ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
-              }`}
-          >
-            <tab.icon size={18} /> {tab.name}
-          </button>
-        ))}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <CreditCard className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">PDC & Receipt Management</h1>
+              <p className="text-sm text-gray-600">Comprehensive system for managing post-dated cheques and receipts</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+              <Bell className="w-5 h-5" />
+            </button>
+            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+              <HelpCircle className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* TAB CONTENT CONTAINER */}
-      <div className="mt-8">
-        {renderContent()}
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Main Navigation */}
+          <div className="mb-8">
+            <div className="flex flex-wrap gap-2">
+              {mainTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all ${
+                    activeTab === tab.id
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <tab.icon className="w-5 h-5" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <div className="animate-in fade-in duration-300">
+            {renderTabContent()}
+          </div>
+        </div>
       </div>
 
+      {/* Add PDC Modal */}
+      {showAddPDC && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Plus className="w-6 h-6 text-blue-600" />
+                  <h2 className="text-xl font-semibold text-gray-900">Add New PDC</h2>
+                </div>
+                <button
+                  onClick={() => setShowAddPDC(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Loan ID</label>
+                    <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Enter Loan ID" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                    <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Enter customer name" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                    <input type="number" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="0.00" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Cheque Number</label>
+                    <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Enter cheque number" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                    <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Enter bank name" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                    <input type="date" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Save PDC
+                  </button>
+                  <button
+                    onClick={() => setShowAddPDC(false)}
+                    className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cheque Detail Modal */}
+      {selectedCheque && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-6 h-6 text-blue-600" />
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">PDC Details</h2>
+                    <p className="text-sm text-gray-600">{selectedCheque.id}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedCheque(null)}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-sm text-gray-600">Loan ID</label>
+                    <p className="font-medium">{selectedCheque.loanId}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">Customer</label>
+                    <p className="font-medium">{selectedCheque.customerName}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">Amount</label>
+                    <p className="font-bold text-lg">{formatCurrency(selectedCheque.amount)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">Status</label>
+                    {getStatusBadge(selectedCheque.status)}
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">Bank</label>
+                    <p className="font-medium">{selectedCheque.bank}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">Cheque No.</label>
+                    <p className="font-medium">{selectedCheque.chequeNo}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">Due Date</label>
+                    <p className="font-medium">{formatDate(selectedCheque.dueDate)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">Deposit Date</label>
+                    <p className="font-medium">{formatDate(selectedCheque.depositDate)}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Edit Details
+                  </button>
+                  <button className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    Mark as Cleared
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
