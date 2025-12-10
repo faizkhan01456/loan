@@ -113,13 +113,8 @@ export default function SidebarNav() {
                 { name: "Sales Target/Achievement", path: "/admin/reports/sales-target-and-achievement" },
               ]
             },
-            
-            { name: "Collection Reports", path: "/admin/reports/collection" },
             { name: "NPA Reports", path: "/admin/reports/npa-reports" },
             { name: "CRC Report", path: "/admin/reports/crc-report" },
-            { name: "Assets Detail", path: "/admin/reports/assets" },
-            { name: "Accrued Interest", path: "/admin/reports/accrued-interest" },
-            { name: "Attendance Report", path: "/admin/reports/attendance" },
           ]
         },
       ]
@@ -132,20 +127,30 @@ export default function SidebarNav() {
           name: "Configuration", 
           icon: <Sliders size={20} />, 
           subItems: [
-            { name: "Employee Add", path: "/admin/configuration/employee", icon: <UserPlus size={16} /> },
-            { name: "Partner Add", path: "/admin/configuration/partner", icon: <Handshake size={16} /> },
-            { name: "Branch Management", path: "/admin/configuration/BranchManagement", icon: <Handshake size={16} /> },
-            { name: "Loan Swap", path: "/admin/configuration/loan-swap", icon: <Handshake size={16} /> },
-            { name: "Loan Product", path: "/admin/configuration/loan-product", icon: <Handshake size={16} /> },
-            { name: "Location", path: "/admin/configuration/location", icon: <Handshake size={16} /> },
-            { name: "masters setup", path: "/admin/configuration/masters-setup", icon: <Handshake size={16} /> },
-            { name: "Kyc Verification", path: "/admin/configuration/kyc-verification", icon: <Handshake size={16} /> },
-            { name: "Vehicle Masters", path: "/admin/configuration/vehicle-masters", icon: <Handshake size={16} /> },
-            { name: "Consumer Durable", path: "/admin/configuration/consumer-durable", icon: <Handshake size={16} /> },
+            { name: "Employee Add", path: "/admin/configuration/employee" },
+            { name: "Partner Add", path: "/admin/configuration/partner" },
+            { name: "Branch Management", path: "/admin/configuration/BranchManagement" },
+            { name: "Loan Swap", path: "/admin/configuration/loan-swap" },
+            { name: "Loan Product", path: "/admin/configuration/loan-product" },
+            { name: "Location", path: "/admin/configuration/location" },
+            { name: "masters setup", path: "/admin/configuration/masters-setup" },
+            { name: "Kyc Verification", path: "/admin/configuration/kyc-verification" },
+            { name: "Vehicle Masters", path: "/admin/configuration/vehicle-masters" },
+            { name: "Consumer Durable", path: "/admin/configuration/consumer-durable" },
           ]
         },
         { name: "Admin Roles", icon: <ShieldCheck size={20} />, path: "/admin/admin-roles" },
-        { name: "System Settings", icon: <Settings size={20} />, path: "/admin/system-settings" },
+
+        {
+          name: "System Settings",
+          icon: <Settings size={20} />, 
+          subItems: [
+            { name: "Company Details", path: "/admin/system-setting/company-details" },
+            { name: "Loan Configuration", path: "/admin/system-setting/loan-configuration" },
+            { name: "Securit Settings", path: "/admin/system-setting/security-settings" },
+            { name: "Payment Settings", path: "/admin/system-setting/payment-settings" },
+          ]
+        },
       ]
     }
   ];
