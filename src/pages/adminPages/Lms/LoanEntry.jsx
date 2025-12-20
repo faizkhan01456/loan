@@ -7,24 +7,17 @@ import {
   X, 
   Edit,
   Calendar,
-  User, 
-  DollarSign,
-  FileText, 
-  CheckCircle, 
-  Clock,
-  AlertCircle,
   Briefcase,
   Download,
-  MoreVertical // Naya icon add kiya gaya hai
 } from "lucide-react";
+import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
+import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
 
 export default function LoanEntry() {
 
   // ------------------ STATE ------------------
   const [activeTab, setActiveTab] = useState("viewModify");
   const [selectedLoan, setSelectedLoan] = useState(null);
-  const [openMenuId, setOpenMenuId] = useState(null); // Menu track karne ke liye state
-
   // Sample data
   const [applications, setApplications] = useState([
     { id: 1, customer: "Rahul Sharma", loanAmount: "₹50,000", status: "Pending", applicationDate: "2025-01-15", type: "Personal" },
@@ -46,7 +39,6 @@ export default function LoanEntry() {
         item.id === id ? { ...item, status: newStatus } : item
       )
     );
-    setOpenMenuId(null); // Action ke baad menu close karein
   };
 
   // ------------------ MODAL COMPONENT ------------------
@@ -76,6 +68,51 @@ export default function LoanEntry() {
     );
   };
 
+
+  const handleExport = () => {
+  // 👉 Kis tab ka data export karna hai
+  const isLoanTab = activeTab === "viewModify";
+
+  const headers = isLoanTab
+    ? ["Customer", "Loan Type", "Amount", "Status", "Application Date"]
+    : ["Customer", "Disbursement Date", "EMI Start", "Amount", "Tenure"];
+
+  const rows = isLoanTab
+    ? applications.map(app => [
+        app.customer,
+        app.type,
+        app.loanAmount,
+        app.status,
+        app.applicationDate,
+      ])
+    : bookingList.map(b => [
+        b.customer,
+        b.disbursementDate,
+        b.emiStart,
+        b.loanAmount,
+        b.tenure,
+      ]);
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.join(","))
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = isLoanTab
+    ? "loan-applications.csv"
+    : "booking-list.csv";
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+
   return (
     <div className="w-full min-h-screen bg-gray-50 p-6 lg:p-10">
       
@@ -85,26 +122,13 @@ export default function LoanEntry() {
           <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Loan Management</h1>
           <p className="text-gray-500 mt-1">Manage loan applications, approvals, and booking records.</p>
         </div>
-        <button className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all shadow-sm font-medium">
-          <Download size={18} /> Export Report
-        </button>
+        <ExportButton 
+         label="Export"
+         onClick={handleExport}
+        />
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
-          <div><p className="text-gray-500 text-sm font-medium">Total Applications</p><h3 className="text-2xl font-bold text-gray-800 mt-1">{applications.length}</h3></div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><FileText size={24} /></div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
-          <div><p className="text-gray-500 text-sm font-medium">Approved Loans</p><h3 className="text-2xl font-bold text-gray-800 mt-1">{applications.filter(l => l.status === "Approved").length}</h3></div>
-          <div className="p-3 bg-green-50 text-green-600 rounded-xl"><CheckCircle size={24} /></div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
-          <div><p className="text-gray-500 text-sm font-medium">Pending Review</p><h3 className="text-2xl font-bold text-gray-800 mt-1">{applications.filter(l => ["Pending", "Under Review"].includes(l.status)).length}</h3></div>
-          <div className="p-3 bg-orange-50 text-orange-600 rounded-xl"><Clock size={24} /></div>
-        </div>
-      </div>
+   
 
       {/* Tabs */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
@@ -160,27 +184,41 @@ export default function LoanEntry() {
                       </td>
 
                       {/* THREE DOTS ACTION MENU */}
-                      <td className="p-4 relative">
-                        <div className="flex justify-end">
-                          <button 
-                            onClick={() => setOpenMenuId(openMenuId === app.id ? null : app.id)}
-                            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                          >
-                            <MoreVertical size={20} className="text-gray-500" />
-                          </button>
+                   <td className="p-4 text-right">
+                      <ActionMenu
+                        position="bottom-right"
+                        showStatus
+                        statusInfo={{
+                          title: app.customer,
+                          status: app.status.toLowerCase(),
+                          statusText: app.status,
+                          subtitle: app.applicationDate
+                        }}
+                        items={[
+                          {
+                            label: "View Details",
+                            icon: <Eye size={16} />,
+                            onClick: () => setSelectedLoan(app)
+                          },
+                          {
+                            label: "Approve Loan",
+                            icon: <Check size={16} />,
+                            onClick: () => updateStatus(app.id, "Approved"),
+                            disabled: app.status === "Approved",
+                            badge: app.status === "Approved" ? "Done" : null,
+                            badgeColor: "green"
+                          },
+                          {
+                            label: "Reject Loan",
+                            icon: <X size={16} />,
+                            danger: true,
+                            onClick: () => updateStatus(app.id, "Rejected"),
+                            disabled: app.status === "Rejected"
+                          }
+                        ]}
+                      />
+                    </td>
 
-                          {openMenuId === app.id && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)}></div>
-                              <div className="absolute right-12 top-4 w-44 bg-white border border-gray-200 rounded-xl shadow-xl z-20 py-2 animate-in fade-in slide-in-from-right-2 duration-150">
-                                <button onClick={() => { setSelectedLoan(app); setOpenMenuId(null); }} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"><Eye size={16} /> View Details</button>
-                                <button onClick={() => updateStatus(app.id, "Approved")} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors"><Check size={16} /> Approve Loan</button>
-                                <button onClick={() => updateStatus(app.id, "Rejected")} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"><X size={16} /> Reject Loan</button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -213,7 +251,7 @@ export default function LoanEntry() {
                       <td className="p-4 font-semibold">{booking.loanAmount}</td>
                       <td className="p-4 text-gray-600">{booking.tenure}</td>
                       <td className="p-4 text-right">
-                        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"><Edit size={14} /> Edit</button>
+                        <ActionMenu/>
                       </td>
                     </tr>
                   ))}

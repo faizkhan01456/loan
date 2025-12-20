@@ -40,7 +40,14 @@ import {
   CalendarDays,
   ClipboardCheck,
   FileCheck,
-  SendToBack
+  SendToBack,
+  FileEdit,
+  Copy,
+  Share2,
+  ExternalLink,
+  UserMinus,
+  ShieldAlert,
+  History
 } from "lucide-react";
 
 // --- UTILITY FUNCTIONS ---
@@ -101,6 +108,138 @@ const StatusBadge = ({ status }) => {
     <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full border ${color}`}>
       {icon} {status}
     </span>
+  );
+};
+
+// --- ACTION MENU COMPONENT ---
+const ActionMenu = ({ item, onAssign, onViewDetails, onCall, onReassign }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleAssign = () => {
+    onAssign(item);
+    setIsOpen(false);
+  };
+
+  const handleReassign = () => {
+    onReassign(item);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+        title="Actions"
+      >
+        <MoreVertical className="w-4 h-4" />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+          <div className="py-2">
+            {/* View Details */}
+            <button
+              onClick={() => {
+                onViewDetails(item);
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-blue-700 hover:bg-blue-50"
+            >
+              <Eye className="w-4 h-4" />
+              View Details
+            </button>
+            
+            {/* Contact Actions */}
+            <button
+              onClick={() => {
+                onCall(item);
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-green-700 hover:bg-green-50"
+            >
+              <Phone className="w-4 h-4" />
+              Call Customer
+            </button>
+            
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-purple-700 hover:bg-purple-50">
+              <MessageSquare className="w-4 h-4" />
+              Send SMS
+            </button>
+            
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-orange-700 hover:bg-orange-50">
+              <Mail className="w-4 h-4" />
+              Send Email
+            </button>
+            
+            {/* Assignment Actions */}
+            {!item.collectionExecutive ? (
+              <button
+                onClick={handleAssign}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-indigo-700 hover:bg-indigo-50"
+              >
+                <UserPlus className="w-4 h-4" />
+                Assign to Executive
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleReassign}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-amber-700 hover:bg-amber-50"
+                >
+                  <UserMinus className="w-4 h-4" />
+                  Reassign Task
+                </button>
+                
+                <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50">
+                  <ShieldAlert className="w-4 h-4" />
+                  Escalate Case
+                </button>
+              </>
+            )}
+            
+            <div className="border-t border-gray-200 my-1"></div>
+            
+            {/* Document Actions */}
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+              <FileText className="w-4 h-4" />
+              Generate Notice
+            </button>
+            
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+              <FileEdit className="w-4 h-4" />
+              Update Payment
+            </button>
+            
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+              <Printer className="w-4 h-4" />
+              Print Statement
+            </button>
+            
+            <div className="border-t border-gray-200 my-1"></div>
+            
+            {/* History & Audit */}
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+              <History className="w-4 h-4" />
+              View History
+            </button>
+            
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+              <Copy className="w-4 h-4" />
+              Duplicate Record
+            </button>
+            
+            <div className="border-t border-gray-200 my-1"></div>
+            
+            {/* Delete Action */}
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+              <Trash2 className="w-4 h-4" />
+              Delete Record
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -748,6 +887,22 @@ export default function DueList() {
     }, 3000);
   };
 
+  // --- ACTION HANDLERS ---
+  const handleViewDetails = (item) => {
+    console.log("View details for:", item);
+    alert(`Viewing details for ${item.customerName}`);
+  };
+
+  const handleCallCustomer = (item) => {
+    console.log("Calling:", item.contact);
+    alert(`Calling ${item.customerName} at ${item.contact}`);
+  };
+
+  const handleReassignTask = (item) => {
+    setSelectedCustomer(item);
+    setShowAssignmentModal(true);
+  };
+
   // --- SORTING FUNCTION ---
   const requestSort = (key) => {
     let direction = 'asc';
@@ -1071,31 +1226,13 @@ export default function DueList() {
                         <StatusBadge status={item.status} />
                       </td>
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-1">
-                          {!item.collectionExecutive ? (
-                            <button
-                              onClick={() => handleAssignTask(item)}
-                              className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded flex items-center gap-1 text-xs font-medium"
-                            >
-                              <UserPlus size={14} />
-                              Assign
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleAssignTask(item)}
-                              className="p-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded flex items-center gap-1 text-xs font-medium"
-                            >
-                              <Edit size={14} />
-                              Reassign
-                            </button>
-                          )}
-                          <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded">
-                            <PhoneCall size={16} />
-                          </button>
-                          <button className="p-1.5 text-purple-600 hover:bg-purple-50 rounded">
-                            <Eye size={16} />
-                          </button>
-                        </div>
+                        <ActionMenu
+                          item={item}
+                          onAssign={handleAssignTask}
+                          onViewDetails={handleViewDetails}
+                          onCall={handleCallCustomer}
+                          onReassign={handleReassignTask}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -1142,7 +1279,6 @@ export default function DueList() {
           <QuickActionsSidebar
             recentTasks={assignedTasks}
             onViewAllTasks={() => {
-              // Implement view all tasks functionality
               console.log("View all tasks clicked");
             }}
           />
