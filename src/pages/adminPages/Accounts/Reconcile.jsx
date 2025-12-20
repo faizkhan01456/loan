@@ -637,31 +637,7 @@ function Reconcile() {
                   </table>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-blue-600" />
-                    Quick Reconciliation Actions
-                  </h3>
-                  <div className="flex flex-wrap gap-3">
-                    <button className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-3 rounded-xl hover:from-emerald-600 hover:to-green-600 transition shadow-md">
-                      <CheckCircle className="w-5 h-5" />
-                      Auto Reconcile
-                    </button>
-                    <button className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-3 rounded-xl hover:from-blue-600 hover:to-indigo-600 transition shadow-md">
-                      <FileCheck className="w-5 h-5" />
-                      Generate Report
-                    </button>
-                    <button className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 rounded-xl hover:from-amber-600 hover:to-orange-600 transition shadow-md">
-                      <AlertCircle className="w-5 h-5" />
-                      Flag Differences
-                    </button>
-                    <button className="flex items-center gap-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white px-4 py-3 rounded-xl hover:from-violet-600 hover:to-purple-600 transition shadow-md">
-                      <Calculator className="w-5 h-5" />
-                      Calculate Adjustments
-                    </button>
-                  </div>
-                </div>
+               
               </div>
             )}
 
@@ -893,12 +869,8 @@ function Reconcile() {
           <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-6 py-5 border-t border-gray-200">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="text-sm text-gray-600 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-gray-400" />
-                <span>
-                  Showing {activeTab === 'general-ledger' ? generalLedgerData.length : 
-                          activeTab === 'bank-reconciliation' ? bankReconciliationData.length : 
-                          trialBalanceData.length} records
-                </span>
+            
+                
               </div>
               <div className="flex items-center gap-2">
                 <button className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-700 transition">

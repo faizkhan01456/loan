@@ -92,7 +92,7 @@ export default function SidebarNav() {
             { name: "Reconcile Bank Balance", path: "/admin/accounting/reconcile" },
             { name: "IMD Authorization", path: "/admin/accounting/imd-authorization" },
             { name: "Reciept Entry", path: "/admin/accounting/reciept-entry" },
-            { name: "Trial Balance", path: "/admin/accounting/trial-balance" },
+            // { name: "Trial Balance", path: "/admin/accounting/trial-balance" },
           ] 
         },
         
