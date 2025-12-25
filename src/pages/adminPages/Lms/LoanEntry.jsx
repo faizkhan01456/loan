@@ -4,33 +4,39 @@ import {
   Filter, 
   Eye, 
   Check, 
-  X, 
-  Edit,
-  Calendar,
-  Briefcase,
-  Download,
+  X
 } from "lucide-react";
 import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
 import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
+import Pagination from "../../../components/admin/common/Pagination";
 
 export default function LoanEntry() {
-
   // ------------------ STATE ------------------
-  const [activeTab, setActiveTab] = useState("viewModify");
   const [selectedLoan, setSelectedLoan] = useState(null);
-  // Sample data
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // हर page पर कितने items show होंगे
+  
+  // Sample data for applications (Unique IDs और varied data के साथ)
   const [applications, setApplications] = useState([
     { id: 1, customer: "Rahul Sharma", loanAmount: "₹50,000", status: "Pending", applicationDate: "2025-01-15", type: "Personal" },
     { id: 2, customer: "Priya Patel", loanAmount: "₹75,000", status: "Under Review", applicationDate: "2025-01-14", type: "Business" },
     { id: 3, customer: "Amit Kumar", loanAmount: "₹1,00,000", status: "Approved", applicationDate: "2025-01-10", type: "Home" },
-    { id: 4, customer: "Sneha Gupta", loanAmount: "₹2,50,000", status: "Rejected", applicationDate: "2025-01-08", type: "Education" }
+    { id: 4, customer: "Sneha Gupta", loanAmount: "₹2,50,000", status: "Rejected", applicationDate: "2025-01-08", type: "Education" },
+    { id: 5, customer: "Ravi Verma", loanAmount: "₹1,50,000", status: "Pending", applicationDate: "2025-01-05", type: "Personal" },
+    { id: 6, customer: "Meera Singh", loanAmount: "₹3,00,000", status: "Approved", applicationDate: "2025-01-03", type: "Business" },
+    { id: 7, customer: "Karan Malhotra", loanAmount: "₹80,000", status: "Under Review", applicationDate: "2025-01-02", type: "Education" },
+    { id: 8, customer: "Pooja Reddy", loanAmount: "₹2,00,000", status: "Pending", applicationDate: "2024-12-30", type: "Home" },
+    { id: 9, customer: "Vikram Joshi", loanAmount: "₹1,20,000", status: "Approved", applicationDate: "2024-12-28", type: "Personal" },
+    { id: 10, customer: "Anjali Desai", loanAmount: "₹4,00,000", status: "Rejected", applicationDate: "2024-12-25", type: "Business" },
+    { id: 11, customer: "Rajesh Nair", loanAmount: "₹90,000", status: "Pending", applicationDate: "2024-12-20", type: "Education" },
+    { id: 12, customer: "Suman Tiwari", loanAmount: "₹1,80,000", status: "Under Review", applicationDate: "2024-12-18", type: "Home" }
   ]);
 
-  const bookingList = [
-    { id: 1, customer: "Amit Verma", loanAmount: "₹1,20,000", emiStart: "10 Dec 2025", disbursementDate: "15 Jan 2025", tenure: "24 months" },
-    { id: 2, customer: "Neha Singh", loanAmount: "₹80,000", emiStart: "05 Jan 2025", disbursementDate: "20 Dec 2024", tenure: "18 months" },
-    { id: 3, customer: "Rajesh Mehta", loanAmount: "₹2,00,000", emiStart: "20 Feb 2025", disbursementDate: "10 Jan 2025", tenure: "36 months" }
-  ];
+  // ------------------ PAGINATION CALCULATIONS ------------------
+  const totalPages = Math.ceil(applications.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentApplications = applications.slice(startIndex, endIndex);
 
   // ------------------ FUNCTIONS ------------------
   const updateStatus = (id, newStatus) => {
@@ -39,6 +45,33 @@ export default function LoanEntry() {
         item.id === id ? { ...item, status: newStatus } : item
       )
     );
+  };
+
+  const handleExport = () => {
+    const headers = ["Customer", "Loan Type", "Amount", "Status", "Application Date"];
+    const rows = applications.map(app => [
+        app.customer,
+        app.type,
+        app.loanAmount,
+        app.status,
+        app.applicationDate,
+      ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "loan-applications.csv";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // ------------------ MODAL COMPONENT ------------------
@@ -68,51 +101,6 @@ export default function LoanEntry() {
     );
   };
 
-
-  const handleExport = () => {
-  // 👉 Kis tab ka data export karna hai
-  const isLoanTab = activeTab === "viewModify";
-
-  const headers = isLoanTab
-    ? ["Customer", "Loan Type", "Amount", "Status", "Application Date"]
-    : ["Customer", "Disbursement Date", "EMI Start", "Amount", "Tenure"];
-
-  const rows = isLoanTab
-    ? applications.map(app => [
-        app.customer,
-        app.type,
-        app.loanAmount,
-        app.status,
-        app.applicationDate,
-      ])
-    : bookingList.map(b => [
-        b.customer,
-        b.disbursementDate,
-        b.emiStart,
-        b.loanAmount,
-        b.tenure,
-      ]);
-
-  const csvContent = [headers, ...rows]
-    .map(row => row.join(","))
-    .join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = isLoanTab
-    ? "loan-applications.csv"
-    : "booking-list.csv";
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
-
-
   return (
     <div className="w-full min-h-screen bg-gray-50 p-6 lg:p-10">
       
@@ -120,71 +108,73 @@ export default function LoanEntry() {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Loan Management</h1>
-          <p className="text-gray-500 mt-1">Manage loan applications, approvals, and booking records.</p>
+          <p className="text-gray-500 mt-1">Manage loan applications and approvals.</p>
         </div>
         <ExportButton 
-         label="Export"
-         onClick={handleExport}
+          label="Export"
+          onClick={handleExport}
         />
-      </div>
-
-   
-
-      {/* Tabs */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
-        <div className="flex border-b border-gray-100">
-          <button className={`flex-1 px-6 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-all ${activeTab === "viewModify" ? "bg-blue-50/50 text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`} onClick={() => setActiveTab("viewModify")}><Briefcase size={18} /> View / Modify Loan</button>
-          <button className={`flex-1 px-6 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-all ${activeTab === "bookingList" ? "bg-blue-50/50 text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`} onClick={() => setActiveTab("bookingList")}><Calendar size={18} /> Update Booking List</button>
-        </div>
       </div>
 
       {/* Main Content Area */}
       <div className="bg-white shadow-sm rounded-2xl border border-gray-200 overflow-hidden min-h-[500px]">
-        {activeTab === "viewModify" && (
-          <div className="p-6">
-            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div><h2 className="text-xl font-bold text-gray-800">Loan Applications</h2><p className="text-sm text-gray-500">Review and process recent requests</p></div>
-              <div className="flex gap-3 w-full sm:w-auto">
-                <div className="relative flex-1 sm:flex-initial"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} /><input type="text" placeholder="Search..." className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" /></div>
-                <button className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600"><Filter size={18} /></button>
-              </div>
+        <div className="p-6">
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Loan Applications</h2>
+              <p className="text-sm text-gray-500">
+                Showing {startIndex + 1}-{Math.min(endIndex, applications.length)} of {applications.length} applications
+              </p>
             </div>
+            <div className="flex gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-initial">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input type="text" placeholder="Search applications..." className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+              </div>
+              <button className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 transition-colors">
+                <Filter size={18} />
+              </button>
+            </div>
+          </div>
 
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/50 border-b text-left">
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {applications.map(app => (
-                    <tr key={app.id} className="hover:bg-gray-50/80 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-sm">{app.customer.charAt(0)}</div>
-                          <span className="font-medium text-gray-800">{app.customer}</span>
+          <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b text-left">
+                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {currentApplications.map(app => (
+                  <tr key={app.id} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-sm">
+                          {app.customer.charAt(0)}
                         </div>
-                      </td>
-                      <td className="p-4 text-gray-600 text-sm">{app.type}</td>
-                      <td className="p-4 font-semibold text-gray-900">{app.loanAmount}</td>
-                      <td className="p-4 text-gray-500 text-sm">{app.applicationDate}</td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border 
-                          ${app.status === "Approved" ? "bg-green-50 text-green-700 border-green-100" : ""}
-                          ${app.status === "Pending" ? "bg-orange-50 text-orange-700 border-orange-100" : ""}
-                          ${app.status === "Under Review" ? "bg-blue-50 text-blue-700 border-blue-100" : ""}
-                          ${app.status === "Rejected" ? "bg-red-50 text-red-700 border-red-100" : ""}
-                        `}>{app.status}</span>
-                      </td>
+                        <span className="font-medium text-gray-800">{app.customer}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-gray-600 text-sm">{app.type}</td>
+                    <td className="p-4 font-semibold text-gray-900">{app.loanAmount}</td>
+                    <td className="p-4 text-gray-500 text-sm">{app.applicationDate}</td>
+                    <td className="p-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold border 
+                        ${app.status === "Approved" ? "bg-green-50 text-green-700 border-green-100" : ""}
+                        ${app.status === "Pending" ? "bg-orange-50 text-orange-700 border-orange-100" : ""}
+                        ${app.status === "Under Review" ? "bg-blue-50 text-blue-700 border-blue-100" : ""}
+                        ${app.status === "Rejected" ? "bg-red-50 text-red-700 border-red-100" : ""}
+                      `}>
+                        {app.status}
+                      </span>
+                    </td>
 
-                      {/* THREE DOTS ACTION MENU */}
-                   <td className="p-4 text-right">
+                    <td className="p-4 text-right">
                       <ActionMenu
                         position="bottom-right"
                         showStatus
@@ -218,48 +208,22 @@ export default function LoanEntry() {
                         ]}
                       />
                     </td>
-
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "bookingList" && (
-          <div className="p-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Booking Records</h2>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/50 border-b text-left">
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Disbursement</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">EMI Start</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tenure</th>
-                    <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {bookingList.map(booking => (
-                    <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="p-4 font-medium">{booking.customer}</td>
-                      <td className="p-4 text-gray-600">{booking.disbursementDate}</td>
-                      <td className="p-4 text-gray-600">{booking.emiStart}</td>
-                      <td className="p-4 font-semibold">{booking.loanAmount}</td>
-                      <td className="p-4 text-gray-600">{booking.tenure}</td>
-                      <td className="p-4 text-right">
-                        <ActionMenu/>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
+
+          {/* PAGINATION COMPONENT */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            containerClassName="justify-end mt-6"
+            buttonClassName="hover:bg-gray-100 transition-colors"
+            activeButtonClassName="bg-blue-600 text-white"
+          />
+        </div>
       </div>
 
       {selectedLoan && <LoanModal loan={selectedLoan} onClose={() => setSelectedLoan(null)} />}
