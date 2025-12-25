@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Eye,
-  Edit,
   Search,
   Filter,
   Download,
@@ -13,24 +11,16 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  MoreVertical,
   ChevronDown,
   ChevronUp,
   Briefcase,
-  CreditCard,
-  FileCheck,
   UserPlus,
   Save,
   X,
   Users,
-  Trash2,
-  Printer,
-  Share2,
-  RefreshCw,
-  Lock,
-  Unlock,
-  MessageCircle
 } from 'lucide-react';
+import ActionMenu from '../../components/admin/AdminButtons/ActionMenu';
+import ExportButton from '../../components/admin/AdminButtons/ExportButton';
 
 const Borrowers = () => {
   // State Management
@@ -39,47 +29,12 @@ const Borrowers = () => {
   const [branchFilter, setBranchFilter] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [setSelectedBorrower] = useState(null);
-  const [setActiveTab] = useState('overview');
-  const [setShowKYCModal] = useState(false);
-  const [setShowLoanModal] = useState(false);
-  const [actionMenuOpen, setActionMenuOpen] = useState(null);
-
+  
   // Sample Data
   const branches = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata', 'Hyderabad'];
-  const loanTypes = ['Personal Loan', 'Home Loan', 'Business Loan', 'Education Loan', 'Vehicle Loan'];
-
   // Borrowers Data
   const [borrowers, setBorrowers] = useState([
-    {
-      id: 1,
-      name: "Sohail Ahmed",
-      phone: "9876543210",
-      email: "sohail@example.com",
-      address: "123 Marine Drive, Mumbai, Maharashtra - 400001",
-      branch: "Mumbai",
-      joinedDate: "2023-01-15",
-      totalLoans: 3,
-      activeLoans: 1,
-      totalAmount: 750000,
-      pendingEMI: 2,
-      overdueAmount: 15000,
-      creditScore: 720,
-      kycStatus: "verified",
-      employment: "Software Engineer",
-      monthlyIncome: 85000,
-      status: "active",
-      tags: ["VIP", "Quick Payer"],
-      lastPayment: "2024-01-15",
-      nextPayment: "2024-02-15",
-      documents: {
-        aadhar: true,
-        pan: true,
-        photo: true,
-        addressProof: true,
-        incomeProof: true
-      }
-    }
+  
   ]);
 
   // New Borrower Form State
@@ -189,13 +144,6 @@ const Borrowers = () => {
     });
   };
 
-  // Handle Status Change
-  const handleStatusChange = (borrowerId, newStatus) => {
-    setBorrowers(borrowers.map(b => 
-      b.id === borrowerId ? { ...b, status: newStatus } : b
-    ));
-  };
-
   // Export to CSV
   const exportToCSV = () => {
     const headers = ['Name', 'Phone', 'Email', 'Branch', 'Status', 'Total Loans', 'Active Loans', 'Total Amount', 'Overdue Amount'];
@@ -246,100 +194,7 @@ const Borrowers = () => {
     );
   };
 
-  // Action Menu Component
-  const ActionMenu = ({ borrowerId }) => {
-    const borrower = borrowers.find(b => b.id === borrowerId);
-    
-    return (
-      <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-        <div className="py-1">
-          <button 
-            onClick={() => {
-              const borrower = borrowers.find(b => b.id === borrowerId);
-              setSelectedBorrower(borrower);
-              setActionMenuOpen(null);
-            }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            <Eye className="w-4 h-4" />
-            View Details
-          </button>
-          <button 
-            onClick={() => {
-              const borrower = borrowers.find(b => b.id === borrowerId);
-              setSelectedBorrower(borrower);
-              setActiveTab('edit');
-              setActionMenuOpen(null);
-            }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            <Edit className="w-4 h-4" />
-            Edit Profile
-          </button>
-          <button 
-            onClick={() => {
-              setShowKYCModal(true);
-              setActionMenuOpen(null);
-            }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            <FileCheck className="w-4 h-4" />
-            KYC Documents
-          </button>
-          <button 
-            onClick={() => {
-              setShowLoanModal(true);
-              setActionMenuOpen(null);
-            }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            <CreditCard className="w-4 h-4" />
-            Loan History
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-            <Printer className="w-4 h-4" />
-            Print Statement
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-            <MessageCircle className="w-4 h-4" />
-            Send Message
-          </button>
-          <div className="border-t border-gray-200 my-1"></div>
-          
-          {/* Status Change Options */}
-          <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Change Status
-          </div>
-          
-          {borrower?.status !== 'active' && (
-            <button 
-              onClick={() => handleStatusChange(borrowerId, 'active')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-green-700 hover:bg-green-50"
-            >
-              <CheckCircle className="w-4 h-4" />
-              Mark as Active
-            </button>
-          )}
-          
-          {borrower?.status !== 'blocked' && (
-            <button 
-              onClick={() => handleStatusChange(borrowerId, 'blocked')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
-            >
-              <Lock className="w-4 h-4" />
-              Block Borrower
-            </button>
-          )}
-          
-          <div className="border-t border-gray-200 my-1"></div>
-          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
-            <Trash2 className="w-4 h-4" />
-            Delete Record
-          </button>
-        </div>
-      </div>
-    );
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -358,13 +213,12 @@ const Borrowers = () => {
             </div>
             
             <div className="flex flex-wrap gap-3">
-              <button
+              <ExportButton
                 onClick={exportToCSV}
-                className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <Download className="w-5 h-5" />
                 Export
-              </button>
+              </ExportButton>
               <button
                 onClick={() => setShowAddForm(true)}
                 className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -615,18 +469,7 @@ const Borrowers = () => {
 
                     {/* Actions - Now only Three Dots Menu */}
                     <td className="py-4 px-6">
-                      <div className="relative">
-                        <button
-                          onClick={() => setActionMenuOpen(actionMenuOpen === borrower.id ? null : borrower.id)}
-                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="Actions"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                        {actionMenuOpen === borrower.id && (
-                          <ActionMenu borrowerId={borrower.id} />
-                        )}
-                      </div>
+                      <ActionMenu/>
                     </td>
                   </tr>
                 ))}
@@ -646,18 +489,7 @@ const Borrowers = () => {
 
           {/* Table Footer */}
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-            <div className="text-sm text-gray-600">
-              Showing {filteredBorrowers.length} of {borrowers.length} borrowers
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                Previous
-              </button>
-              <span className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm">1</span>
-              <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                Next
-              </button>
-            </div>
+            
           </div>
         </div>
       </div>
@@ -695,14 +527,16 @@ const Borrowers = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number *</label>
                     <input
                       type="tel"
                       required
                       value={newBorrower.phone}
                       onChange={(e) => setNewBorrower({...newBorrower, phone: e.target.value})}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                      placeholder="9876543210"
+                      placeholder="Enter Mobile Number"
+                      maxLength={10}
+                      inputMode="numeric"
                     />
                   </div>
                   

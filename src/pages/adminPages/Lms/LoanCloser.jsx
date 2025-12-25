@@ -20,10 +20,15 @@ import {
   IndianRupee,
 } from "lucide-react";
 import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
+import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
+import Pagination from "../../../components/admin/common/Pagination";
 
 export default function LoanCloser() {
   // --- STATE MANAGEMENT ---
   const [activeTab, setActiveTab] = useState("preCloser");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const itemsPerPage = 5;
 
   // --- MOCK DATA ---
   const PRE_CLOSER_DATA = [
@@ -67,6 +72,38 @@ export default function LoanCloser() {
       amount: 250000,
       daysPending: 0,
     },
+    {
+      id: "LN0012350",
+      customer: "Anil Kapoor",
+      requestedDate: "2025-10-22",
+      status: "Pending Approval",
+      amount: 150000,
+      daysPending: 2,
+    },
+    {
+      id: "LN0012351",
+      customer: "Meena Reddy",
+      requestedDate: "2025-10-21",
+      status: "Approved",
+      amount: 300000,
+      daysPending: 0,
+    },
+    {
+      id: "LN0012352",
+      customer: "Suresh Nair",
+      requestedDate: "2025-10-19",
+      status: "Rejected",
+      amount: 450000,
+      daysPending: 0,
+    },
+    {
+      id: "LN0012353",
+      customer: "Kavita Desai",
+      requestedDate: "2025-10-17",
+      status: "Pending Approval",
+      amount: 180000,
+      daysPending: 7,
+    },
   ];
 
   const WRITE_OFF_DATA = [
@@ -100,6 +137,36 @@ export default function LoanCloser() {
       status: "Settled",
       recovery: "31.8%",
     },
+    {
+      id: "WO009815",
+      loanId: "LN0006677",
+      customer: "Rajesh Kumar",
+      settlementDate: "2024-10-20",
+      principal: 850000,
+      settledAmount: 250000,
+      status: "Settled",
+      recovery: "29.4%",
+    },
+    {
+      id: "WO009816",
+      loanId: "LN0007788",
+      customer: "Sunita Sharma",
+      settlementDate: "2024-10-18",
+      principal: 420000,
+      settledAmount: 150000,
+      status: "Settled",
+      recovery: "35.7%",
+    },
+    {
+      id: "WO009817",
+      loanId: "LN0008899",
+      customer: "Vikram Singh",
+      settlementDate: "2024-10-15",
+      principal: 950000,
+      settledAmount: 320000,
+      status: "Settled",
+      recovery: "33.7%",
+    },
   ];
 
   const UNDO_REQUESTS = [
@@ -127,6 +194,22 @@ export default function LoanCloser() {
       reason: "System Glitch",
       status: "Rejected",
     },
+    {
+      id: "UDR004",
+      loanId: "LN0011004",
+      requestDate: "2025-10-27",
+      processor: "Admin D",
+      reason: "Document Error",
+      status: "Pending Review",
+    },
+    {
+      id: "UDR005",
+      loanId: "LN0011005",
+      requestDate: "2025-10-26",
+      processor: "Admin E",
+      reason: "Payment Reversal",
+      status: "Approved",
+    },
   ];
 
   const AUTO_CLOSER_LOG = [
@@ -150,6 +233,27 @@ export default function LoanCloser() {
       criteria: "Zero Balance Check",
       result: "Failed",
       duration: 150,
+    },
+    {
+      loanId: "LN0020004",
+      closeDate: "2025-10-29 02:20 AM",
+      criteria: "Final Payment Matched",
+      result: "Success",
+      duration: 110,
+    },
+    {
+      loanId: "LN0020005",
+      closeDate: "2025-10-29 02:25 AM",
+      criteria: "Zero Balance Check",
+      result: "Success",
+      duration: 130,
+    },
+    {
+      loanId: "LN0020006",
+      closeDate: "2025-10-29 02:30 AM",
+      criteria: "Document Verification",
+      result: "Failed",
+      duration: 200,
     },
   ];
 
@@ -175,6 +279,27 @@ export default function LoanCloser() {
       printStatus: "Pending Sign-off",
       delivery: "Mail",
     },
+    {
+      loanId: "LN0030104",
+      customer: "Kiran Reddy",
+      closeDate: "2025-10-18",
+      printStatus: "Ready to Print",
+      delivery: "Email",
+    },
+    {
+      loanId: "LN0030105",
+      customer: "Lalit Mittal",
+      closeDate: "2025-10-15",
+      printStatus: "Printed",
+      delivery: "Mail",
+    },
+    {
+      loanId: "LN0030106",
+      customer: "Manoj Tiwari",
+      closeDate: "2025-10-12",
+      printStatus: "Pending Sign-off",
+      delivery: "Email",
+    },
   ];
 
   const DELETE_REQUESTS = [
@@ -196,10 +321,82 @@ export default function LoanCloser() {
       approvalLevel: "L1",
       status: "Approved",
     },
+    {
+      id: "DLR003",
+      loanId: "LN0045003",
+      customer: "Neha Sharma",
+      requestDate: "2025-10-26",
+      reason: "Data Corruption",
+      approvalLevel: "L2",
+      status: "Pending L1",
+    },
+    {
+      id: "DLR004",
+      loanId: "LN0045004",
+      customer: "Prakash Verma",
+      requestDate: "2025-10-23",
+      reason: "Test Entry",
+      approvalLevel: "L1",
+      status: "Approved",
+    },
   ];
 
-  // --- SHARED COMPONENTS ---
+  // --- PAGINATION FUNCTIONS ---
+  const getCurrentTabData = () => {
+    let data = [];
+    
+    switch (activeTab) {
+      case "preCloser":
+        data = PRE_CLOSER_DATA.filter(
+          (l) =>
+            l.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            l.customer.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        break;
+      case "writeOff":
+        data = WRITE_OFF_DATA;
+        break;
+      case "undo":
+        data = UNDO_REQUESTS;
+        break;
+      case "autoCloser":
+        data = AUTO_CLOSER_LOG;
+        break;
+      case "noc":
+        data = NOC_PRINT_QUEUE;
+        break;
+      case "delete":
+        data = DELETE_REQUESTS;
+        break;
+      default:
+        data = [];
+    }
+    
+    return data;
+  };
 
+  const getCurrentPageData = () => {
+    const allData = getCurrentTabData();
+    const totalPages = Math.ceil(allData.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    
+    return {
+      data: allData.slice(startIndex, endIndex),
+      totalPages,
+      startIndex,
+      endIndex,
+      totalItems: allData.length
+    };
+  };
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setCurrentPage(1);
+    setSearchTerm("");
+  };
+
+  // --- SHARED COMPONENTS ---
   const StatusBadge = ({ status, days = 0 }) => {
     let styles = "";
     let icon = null;
@@ -235,18 +432,9 @@ export default function LoanCloser() {
   };
 
   // --- TAB RENDERERS ---
-
   const PreCloserRequestsTable = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const filtered = PRE_CLOSER_DATA.filter(
-      (l) =>
-        l.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        l.customer.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
+    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
     
-    
-
     return (
       <div className="animate-in fade-in zoom-in duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
@@ -263,9 +451,14 @@ export default function LoanCloser() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all">
-            <FileText className="w-4 h-4 mr-2" /> New Request
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">
+              Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+            </span>
+            <button className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all">
+              <FileText className="w-4 h-4 mr-2" /> New Request
+            </button>
+          </div>
         </div>
 
         <div className="overflow-hidden border rounded-xl shadow-sm">
@@ -281,7 +474,7 @@ export default function LoanCloser() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filtered.map((item) => (
+              {data.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50 transition">
                   <td className="px-6 py-4 font-medium text-blue-600">
                     {item.id}
@@ -296,15 +489,15 @@ export default function LoanCloser() {
                   <td className="px-6 py-4">
                     <StatusBadge status={item.status} days={item.daysPending} />
                   </td>
-                  <td className="px-6 py-4 text-right flex justify-end gap-2">
-                    <button className="p-1.5 text-gray-400 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 rounded-lg">
-                      <MoreVertical size={16} />
-                    </button>
-                    {item.status === "Pending Approval" && (
-                      <button className="p-1.5 text-green-600 hover:text-white bg-green-50 hover:bg-green-600 rounded-lg">
-                        <ArrowRight size={16} />
-                      </button>
-                    )}
+                  <td className="px-6 py-4 text-right flex justify-end">
+                    <ActionMenu
+                      items={[
+                        { label: "View Details", onClick: () => console.log("View", item.id) },
+                        { label: "Approve", onClick: () => console.log("Approve", item.id) },
+                        { label: "Reject", onClick: () => console.log("Reject", item.id) },
+                        { label: "Edit Request", onClick: () => console.log("Edit", item.id) },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}
@@ -316,11 +509,18 @@ export default function LoanCloser() {
   };
 
   const WriteOffSettledTable = () => {
+    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+    
     return (
       <div className="animate-in fade-in zoom-in duration-300">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="font-bold text-gray-700">Settlement History</h3>
-          <ExportButton/>
+          <div>
+            <h3 className="font-bold text-gray-700">Settlement History</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} settlements
+            </p>
+          </div>
+          <ExportButton />
         </div>
         <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
           <table className="min-w-full text-sm text-left">
@@ -336,7 +536,7 @@ export default function LoanCloser() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {WRITE_OFF_DATA.map((item) => (
+              {data.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 font-mono text-gray-500">
                     {item.id}
@@ -366,193 +566,225 @@ export default function LoanCloser() {
     );
   };
 
-  const LoanCloserUndoTable = () => (
-    <div className="animate-in fade-in zoom-in duration-300">
-      <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6 flex items-start gap-3">
-        <AlertTriangle className="text-amber-600 mt-0.5" size={20} />
-        <div>
-          <h4 className="text-sm font-bold text-amber-800">Critical Zone</h4>
-          <p className="text-xs text-amber-700">
-            Reversing a loan closure affects financial books. Ensure proper
-            authorization before proceeding.
-          </p>
+  const LoanCloserUndoTable = () => {
+    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+    
+    return (
+      <div className="animate-in fade-in zoom-in duration-300">
+        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <AlertTriangle className="text-amber-600 mt-0.5" size={20} />
+          <div>
+            <h4 className="text-sm font-bold text-amber-800">Critical Zone</h4>
+            <p className="text-xs text-amber-700">
+              Reversing a loan closure affects financial books. Ensure proper
+              authorization before proceeding.
+            </p>
+          </div>
+        </div>
+        <div className="mb-4 text-sm text-gray-500">
+          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} requests
+        </div>
+        <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
+          <table className="min-w-full text-sm text-left">
+            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
+              <tr>
+                <th className="px-6 py-3">Request ID</th>
+                <th className="px-6 py-3">Loan ID</th>
+                <th className="px-6 py-3">Processor</th>
+                <th className="px-6 py-3">Reason</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map((req) => (
+                <tr key={req.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-gray-500">{req.id}</td>
+                  <td className="px-6 py-4 font-medium text-blue-600">
+                    {req.loanId}
+                  </td>
+                  <td className="px-6 py-4">{req.processor}</td>
+                  <td className="px-6 py-4 text-gray-600">{req.reason}</td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={req.status} />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button className="text-purple-600 hover:bg-purple-50 px-3 py-1.5 rounded-lg text-xs font-medium border border-purple-200 transition">
+                      Review
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
-      <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
-        <table className="min-w-full text-sm text-left">
-          <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
-            <tr>
-              <th className="px-6 py-3">Request ID</th>
-              <th className="px-6 py-3">Loan ID</th>
-              <th className="px-6 py-3">Processor</th>
-              <th className="px-6 py-3">Reason</th>
-              <th className="px-6 py-3">Status</th>
-              <th className="px-6 py-3 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {UNDO_REQUESTS.map((req) => (
-              <tr key={req.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-gray-500">{req.id}</td>
-                <td className="px-6 py-4 font-medium text-blue-600">
-                  {req.loanId}
-                </td>
-                <td className="px-6 py-4">{req.processor}</td>
-                <td className="px-6 py-4 text-gray-600">{req.reason}</td>
-                <td className="px-6 py-4">
-                  <StatusBadge status={req.status} />
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button className="text-purple-600 hover:bg-purple-50 px-3 py-1.5 rounded-lg text-xs font-medium border border-purple-200 transition">
-                    Review
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+    );
+  };
 
-  const AutoCloserLogTable = () => (
-    <div className="animate-in fade-in zoom-in duration-300">
-      <div className="flex justify-between mb-4">
-        <h3 className="font-bold text-gray-700">System Job Logs</h3>
-        <div className="text-xs text-gray-500">Last run: Today, 02:00 AM</div>
-      </div>
-      <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
-        <table className="min-w-full text-sm text-left">
-          <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
-            <tr>
-              <th className="px-6 py-3">Loan ID</th>
-              <th className="px-6 py-3">Execution Time</th>
-              <th className="px-6 py-3">Criteria</th>
-              <th className="px-6 py-3">Duration</th>
-              <th className="px-6 py-3 text-right">Result</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {AUTO_CLOSER_LOG.map((log) => (
-              <tr key={log.loanId} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-mono text-blue-600">
-                  {log.loanId}
-                </td>
-                <td className="px-6 py-4 text-gray-600">{log.closeDate}</td>
-                <td className="px-6 py-4 text-gray-600">{log.criteria}</td>
-                <td className="px-6 py-4 text-gray-400 font-mono">
-                  {log.duration}ms
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <StatusBadge status={log.result} />
-                </td>
+  const AutoCloserLogTable = () => {
+    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+    
+    return (
+      <div className="animate-in fade-in zoom-in duration-300">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="font-bold text-gray-700">System Job Logs</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} logs
+            </p>
+          </div>
+          <div className="text-xs text-gray-500">Last run: Today, 02:00 AM</div>
+        </div>
+        <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
+          <table className="min-w-full text-sm text-left">
+            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
+              <tr>
+                <th className="px-6 py-3">Loan ID</th>
+                <th className="px-6 py-3">Execution Time</th>
+                <th className="px-6 py-3">Criteria</th>
+                <th className="px-6 py-3">Duration</th>
+                <th className="px-6 py-3 text-right">Result</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map((log) => (
+                <tr key={log.loanId} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-mono text-blue-600">
+                    {log.loanId}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">{log.closeDate}</td>
+                  <td className="px-6 py-4 text-gray-600">{log.criteria}</td>
+                  <td className="px-6 py-4 text-gray-400 font-mono">
+                    {log.duration}ms
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <StatusBadge status={log.result} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const NOCPrintTable = () => (
-    <div className="animate-in fade-in zoom-in duration-300">
-      <div className="flex justify-end mb-4">
-        <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm hover:bg-gray-50 font-medium">
-          <Printer size={16} /> Batch Print (Selected)
-        </button>
-      </div>
-      <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
-        <table className="min-w-full text-sm text-left">
-          <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
-            <tr>
-              <th className="px-6 py-3">Loan ID</th>
-              <th className="px-6 py-3">Customer</th>
-              <th className="px-6 py-3">Closure Date</th>
-              <th className="px-6 py-3">Delivery Mode</th>
-              <th className="px-6 py-3">Status</th>
-              <th className="px-6 py-3 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {NOC_PRINT_QUEUE.map((item) => (
-              <tr key={item.loanId} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-medium text-blue-600">
-                  {item.loanId}
-                </td>
-                <td className="px-6 py-4 text-gray-900">{item.customer}</td>
-                <td className="px-6 py-4 text-gray-500">{item.closeDate}</td>
-                <td className="px-6 py-4 text-gray-600">{item.delivery}</td>
-                <td className="px-6 py-4">
-                  <StatusBadge status={item.printStatus} />
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button className="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition">
-                    <Printer size={16} />
-                  </button>
-                </td>
+  const NOCPrintTable = () => {
+    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+    
+    return (
+      <div className="animate-in fade-in zoom-in duration-300">
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-sm text-gray-500">
+            Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} NOCs
+          </div>
+          <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm hover:bg-gray-50 font-medium">
+            <Printer size={16} /> Batch Print (Selected)
+          </button>
+        </div>
+        <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
+          <table className="min-w-full text-sm text-left">
+            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
+              <tr>
+                <th className="px-6 py-3">Loan ID</th>
+                <th className="px-6 py-3">Customer</th>
+                <th className="px-6 py-3">Closure Date</th>
+                <th className="px-6 py-3">Delivery Mode</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3 text-right">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map((item) => (
+                <tr key={item.loanId} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium text-blue-600">
+                    {item.loanId}
+                  </td>
+                  <td className="px-6 py-4 text-gray-900">{item.customer}</td>
+                  <td className="px-6 py-4 text-gray-500">{item.closeDate}</td>
+                  <td className="px-6 py-4 text-gray-600">{item.delivery}</td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={item.printStatus} />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button className="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition">
+                      <Printer size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const DeleteRequestTable = () => (
-    <div className="animate-in fade-in zoom-in duration-300">
-      <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6">
-        <h4 className="text-sm font-bold text-red-800 flex items-center gap-2">
-          <Trash2 size={16} /> Deletion Zone
-        </h4>
-        <p className="text-xs text-red-700 mt-1">
-          Permanent deletion of loan records. Approvals from multiple levels
-          (L1, L2, L3) required.
-        </p>
-      </div>
-      <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
-        <table className="min-w-full text-sm text-left">
-          <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
-            <tr>
-              <th className="px-6 py-3">Req ID</th>
-              <th className="px-6 py-3">Loan ID</th>
-              <th className="px-6 py-3">Customer</th>
-              <th className="px-6 py-3">Reason</th>
-              <th className="px-6 py-3">Level</th>
-              <th className="px-6 py-3 text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {DELETE_REQUESTS.map((req) => (
-              <tr key={req.id} className="hover:bg-red-50/30">
-                <td className="px-6 py-4 text-gray-500">{req.id}</td>
-                <td className="px-6 py-4 font-medium text-blue-600">
-                  {req.loanId}
-                </td>
-                <td className="px-6 py-4 text-gray-900">{req.customer}</td>
-                <td className="px-6 py-4 text-gray-600">{req.reason}</td>
-                <td className="px-6 py-4 font-bold text-gray-700">
-                  {req.approvalLevel}
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <StatusBadge status={req.status} />
-                </td>
+  const DeleteRequestTable = () => {
+    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+    
+    return (
+      <div className="animate-in fade-in zoom-in duration-300">
+        <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6">
+          <h4 className="text-sm font-bold text-red-800 flex items-center gap-2">
+            <Trash2 size={16} /> Deletion Zone
+          </h4>
+          <p className="text-xs text-red-700 mt-1">
+            Permanent deletion of loan records. Approvals from multiple levels
+            (L1, L2, L3) required.
+          </p>
+        </div>
+        <div className="mb-4 text-sm text-gray-500">
+          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} deletion requests
+        </div>
+        <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
+          <table className="min-w-full text-sm text-left">
+            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
+              <tr>
+                <th className="px-6 py-3">Req ID</th>
+                <th className="px-6 py-3">Loan ID</th>
+                <th className="px-6 py-3">Customer</th>
+                <th className="px-6 py-3">Reason</th>
+                <th className="px-6 py-3">Level</th>
+                <th className="px-6 py-3 text-right">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map((req) => (
+                <tr key={req.id} className="hover:bg-red-50/30">
+                  <td className="px-6 py-4 text-gray-500">{req.id}</td>
+                  <td className="px-6 py-4 font-medium text-blue-600">
+                    {req.loanId}
+                  </td>
+                  <td className="px-6 py-4 text-gray-900">{req.customer}</td>
+                  <td className="px-6 py-4 text-gray-600">{req.reason}</td>
+                  <td className="px-6 py-4 font-bold text-gray-700">
+                    {req.approvalLevel}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <StatusBadge status={req.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // --- TAB CONFIGURATION ---
   const tabs = [
     { id: "preCloser", label: "Pre-Closer Request", icon: FileText },
     { id: "writeOff", label: "Write-Off Settled", icon: IndianRupee },
-    // { id: "undo", label: "Loan Closer Undo", icon: RotateCcw },
+    { id: "undo", label: "Loan Closer Undo", icon: RotateCcw },
     { id: "autoCloser", label: "Loan Auto Closer", icon: Clock },
     { id: "noc", label: "NOC Print", icon: Printer },
-    // { id: "delete", label: "Delete Requests", icon: Trash2 },
+    { id: "delete", label: "Delete Requests", icon: Trash2 },
   ];
+
+  const { totalPages } = getCurrentPageData();
 
   // --- MAIN RENDER ---
   return (
@@ -585,7 +817,7 @@ export default function LoanCloser() {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
             className={`flex items-center gap-2 px-5 py-3 rounded-t-xl font-medium transition-all relative top-[1px] whitespace-nowrap
               ${
                 activeTab === tab.id
@@ -612,6 +844,20 @@ export default function LoanCloser() {
         {activeTab === "autoCloser" && <AutoCloserLogTable />}
         {activeTab === "noc" && <NOCPrintTable />}
         {activeTab === "delete" && <DeleteRequestTable />}
+        
+        {/* Pagination Component */}
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              containerClassName="justify-end"
+              buttonClassName="hover:bg-gray-100 transition-colors"
+              activeButtonClassName="bg-blue-600 text-white"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
