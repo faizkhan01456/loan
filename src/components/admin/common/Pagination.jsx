@@ -5,13 +5,13 @@ const Pagination = ({
   totalPages = 1,
   onPageChange = () => {},
   containerClassName = "",
-  buttonClassName = "",
-  activeButtonClassName = "bg-blue-600  text-white",
+  buttonClassName = "hover:bg-gray-100", // default hover style
+  activeButtonClassName = "bg-blue-600 text-white hover:bg-blue-600", // same color maintain rakho
   showPrevNext = true,
   prevLabel = "Prev",
   nextLabel = "Next",
-  maxVisiblePages = 7, // Maximum page numbers to show
-  showEllipsis = true // Show "..." for skipped pages
+  maxVisiblePages = 7,
+  showEllipsis = true
 }) => {
   // Basic validation
   if (totalPages <= 1) return null;
@@ -84,7 +84,7 @@ const Pagination = ({
         <button
           disabled={safeCurrentPage === 1}
           onClick={() => onPageChange(safeCurrentPage - 1)}
-          className={`px-3 py-1 text-sm border rounded disabled:opacity-50 hover:bg-gray-50 transition-colors ${buttonClassName}`}
+          className={`px-3 py-1 text-sm border rounded disabled:opacity-50 ${buttonClassName} transition-colors`}
           aria-label="Previous page"
         >
           {prevLabel}
@@ -97,22 +97,25 @@ const Pagination = ({
           return (
             <span 
               key={`ellipsis-${index}`} 
-              className="px-3 py-1 text-sm text-gray-400"
+              className="px-3 py-1 text-sm text-gray-400 select-none"
             >
               ...
             </span>
           );
         }
         
+        const isActive = page === safeCurrentPage;
+        
         return (
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            className={`px-3 py-1 text-sm border rounded hover:bg-gray-50 transition-colors ${buttonClassName} ${
-              page === safeCurrentPage ? activeButtonClassName : ""
-            }`}
+            className={`
+              px-3 py-1 text-sm border rounded transition-colors 
+              ${isActive ? activeButtonClassName : buttonClassName}
+            `}
             aria-label={`Go to page ${page}`}
-            aria-current={page === safeCurrentPage ? "page" : undefined}
+            aria-current={isActive ? "page" : undefined}
           >
             {page}
           </button>
@@ -124,7 +127,7 @@ const Pagination = ({
         <button
           disabled={safeCurrentPage === totalPages}
           onClick={() => onPageChange(safeCurrentPage + 1)}
-          className={`px-3 py-1 text-sm border rounded disabled:opacity-50 hover:bg-gray-50 transition-colors ${buttonClassName}`}
+          className={`px-3 py-1 text-sm border rounded disabled:opacity-50 ${buttonClassName} transition-colors`}
           aria-label="Next page"
         >
           {nextLabel}
