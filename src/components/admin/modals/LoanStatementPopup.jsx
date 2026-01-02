@@ -9,6 +9,8 @@ import {
   AlertCircle,
   Printer
 } from "lucide-react";
+import Button from "../common/Button";
+import StatusCard from "../common/StatusCard";
 
 // Main Popup Component
 const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
@@ -60,9 +62,10 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
     // Loan Account Number validation
     if (!formData.loanAccount.trim()) {
       newErrors.loanAccount = "Loan account number is required";
-    } else if (!/^[A-Z0-9]{8,12}$/.test(formData.loanAccount)) {
-      newErrors.loanAccount = "Enter a valid loan account number (8-12 alphanumeric)";
+    } else if (!/^[A-Z0-9-]{8,15}$/.test(formData.loanAccount)) {
+      newErrors.loanAccount = "Enter a valid loan account number (e.g. LN-2025-001)";
     }
+
 
     // Date of Birth validation
     if (!formData.dob) {
@@ -101,7 +104,7 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
       const interest = emiAmount - principal;
       const openingBalance = 50000 - (emiNo - 1) * principal;
       const closingBalance = openingBalance - principal;
-      
+
       return {
         emiNo,
         date: `2025-0${emiNo}-15`,
@@ -121,7 +124,7 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       setStatementData(generateStatementData());
@@ -135,7 +138,7 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    
+
     // Simulate PDF generation
     setTimeout(() => {
       // In real implementation, this would generate/download PDF
@@ -150,7 +153,7 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
     const paidEMIs = statementData.filter(item => item.status === "Paid");
     const totalPaid = paidEMIs.length * 2350;
     const totalInterest = paidEMIs.length * (2350 * 0.2);
-    
+
     return {
       totalEMIs: statementData.length,
       paidEMIs: paidEMIs.length,
@@ -214,9 +217,8 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
                     value={formData.loanAccount}
                     onChange={handleChange}
                     placeholder="Enter Loan Account Number"
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${
-                      errors.loanAccount ? "border-red-300" : "border-gray-300"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${errors.loanAccount ? "border-red-300" : "border-gray-300"
+                      }`}
                     disabled={isLoading}
                   />
                   {errors.loanAccount && (
@@ -240,9 +242,8 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
                     name="dob"
                     value={formData.dob}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${
-                      errors.dob ? "border-red-300" : "border-gray-300"
-                    }`}
+                    className={`w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${errors.dob ? "border-red-300" : "border-gray-300"
+                      }`}
                     disabled={isLoading}
                   />
                 </div>
@@ -285,9 +286,8 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
                         name="fromDate"
                         value={formData.fromDate}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${
-                          errors.fromDate ? "border-red-300" : "border-gray-300"
-                        }`}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${errors.fromDate ? "border-red-300" : "border-gray-300"
+                          }`}
                         disabled={isLoading}
                       />
                       {errors.fromDate && (
@@ -306,9 +306,8 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
                         name="toDate"
                         value={formData.toDate}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${
-                          errors.toDate ? "border-red-300" : "border-gray-300"
-                        }`}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${errors.toDate ? "border-red-300" : "border-gray-300"
+                          }`}
                         disabled={isLoading}
                       />
                       {errors.toDate && (
@@ -349,22 +348,13 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
 
               {/* Summary Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-sm text-green-600 font-medium">Paid EMI</p>
-                  <p className="text-2xl font-bold text-green-700">{totals.paidEMIs}</p>
-                </div>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                  <p className="text-sm text-yellow-600 font-medium">Pending EMI</p>
-                  <p className="text-2xl font-bold text-yellow-700">{totals.pendingEMIs}</p>
-                </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <p className="text-sm text-blue-600 font-medium">Total Paid</p>
-                  <p className="text-2xl font-bold text-blue-700">{totals.totalPaid}</p>
-                </div>
-                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                  <p className="text-sm text-purple-600 font-medium">Total Interest</p>
-                  <p className="text-2xl font-bold text-purple-700">{totals.totalInterest}</p>
-                </div>
+                <StatusCard title="Paid EMI" value={totals.paidEMIs} />
+
+                <StatusCard title="Pending EMI" value={totals.pendingEMIs} />
+
+                <StatusCard title="Total Paid" value={totals.totalPaid} />
+
+                <StatusCard title="Total Interest"value={totals.totalInterest}/>
               </div>
 
               {/* Statement Table */}
@@ -394,11 +384,10 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
                           <td className="p-3 text-blue-600 font-medium">{row.interest}</td>
                           <td className="p-3 font-medium">{row.closingBalance}</td>
                           <td className="p-3">
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              row.status === "Paid" 
-                                ? "bg-green-100 text-green-700 border border-green-200"
-                                : "bg-yellow-100 text-yellow-700 border border-yellow-200"
-                            }`}>
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${row.status === "Paid"
+                              ? "bg-green-100 text-green-700 border border-green-200"
+                              : "bg-yellow-100 text-yellow-700 border border-yellow-200"
+                              }`}>
                               {row.status}
                             </span>
                           </td>
@@ -424,10 +413,9 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
                 >
                   Cancel
                 </button>
-                <button
+                <Button
                   onClick={handleViewStatement}
                   disabled={isLoading}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
@@ -440,8 +428,8 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
                       View Statement
                     </>
                   )}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleDownloadPDF}
                   disabled={isLoading}
                   className="px-6 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -457,7 +445,7 @@ const LoanStatementPopup = ({ isOpen, onClose, loanAccountNumber = "" }) => {
                       Download PDF
                     </>
                   )}
-                </button>
+                </Button>
               </>
             ) : (
               <>

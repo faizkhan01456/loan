@@ -18,7 +18,7 @@ import {
 import Button from '../../../components/admin/common/Button';
 import ExportButton from '../../../components/admin/AdminButtons/ExportButton';
 import ActionMenu from '../../../components/admin/AdminButtons/ActionMenu';
-import EmiForm from '../../../components/admin/AdminForm/EmiForm';
+import EmiForm from '../../../components/admin/modals/EmiForm';
 import Pagination from '../../../components/admin/common/Pagination';
 
 // StatusCard Component
