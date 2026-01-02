@@ -19,11 +19,10 @@ export default function LoanEntry() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // हर page पर कितने items show होंगे
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
   const [showStatementPopup, setShowStatementPopup] = useState(false);
   const [selectedLoanAccount, setSelectedLoanAccount] = useState("");
   const [showViewDetails, setShowViewDetails] = useState(false);
-const [viewDetailsData, setViewDetailsData] = useState(null);
+  const [viewDetailsData, setViewDetailsData] = useState(null);
 
 
 
@@ -31,7 +30,7 @@ const [viewDetailsData, setViewDetailsData] = useState(null);
 
   // Sample data for applications (Unique IDs और varied data के साथ)
   const [applications, setApplications] = useState([
-    { id: 1, customer: "Rahul Sharma", loanAmount: "₹50,000", status: "Pending", applicationDate: "2025-01-15", type: "Personal" },
+    { id: 1, customer: "Rahul Sharma", loanAmount: "₹50,000", status: "Pending", applicationDate: "2025-01-15", type: "Personal",loanNumber: "LN-2025-001", },
     { id: 2, customer: "Priya Patel", loanAmount: "₹75,000", status: "Under Review", applicationDate: "2025-01-14", type: "Business" },
     { id: 3, customer: "Amit Kumar", loanAmount: "₹1,00,000", status: "Approved", applicationDate: "2025-01-10", type: "Home" },
     { id: 4, customer: "Sneha Gupta", loanAmount: "₹2,50,000", status: "Rejected", applicationDate: "2025-01-08", type: "Education" },
@@ -46,21 +45,17 @@ const [viewDetailsData, setViewDetailsData] = useState(null);
   ]);
 
   // 1️⃣ FILTERED DATA (PEHLE)
-  const filteredApplications = applications.filter((app) => {
-    const search = searchTerm.toLowerCase();
+  const filteredApplications = applications.filter(app => {
+  const search = searchTerm.toLowerCase();
+  if (!search) return true;
 
-    const matchesSearch =
-      search === "" ||
-      app.customer.toLowerCase().includes(search) ||
-      app.type.toLowerCase().includes(search) ||
-      app.status.toLowerCase().includes(search) ||
-      app.loanAmount.includes(search);
 
-    const matchesStatus =
-      statusFilter === "All" || app.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
+  return (
+    app.customer.toLowerCase().includes(search) ||
+    app.type.toLowerCase().includes(search) ||
+    app.loanNumber?.toLowerCase().includes(search)
+  );
+});
 
   // ------------------ PAGINATION CALCULATIONS ------------------
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -68,14 +63,7 @@ const [viewDetailsData, setViewDetailsData] = useState(null);
   const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
   const currentApplications = filteredApplications.slice(startIndex, endIndex);
 
-  // ------------------ FUNCTIONS ------------------
-  const updateStatus = (id, newStatus) => {
-    setApplications(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, status: newStatus } : item
-      )
-    );
-  };
+  
 
   const handleExport = () => {
     const headers = ["Customer", "Loan Type", "Amount", "Status", "Application Date"];
@@ -134,13 +122,7 @@ const [viewDetailsData, setViewDetailsData] = useState(null);
       <div className="bg-white shadow-sm rounded-2xl border border-gray-200 h-[520px] relative">
         <div className="p-6 h-0">
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Loan Applications</h2>
-              <p className="text-sm text-gray-500">
-                Showing {startIndex + 1}-{Math.min(endIndex, filteredApplications.length)} of {filteredApplications.length} applications
-
-              </p>
-            </div>
+            <h2 className="text-xl font-bold text-gray-800">Loan Applications</h2>
             <div className="flex gap-3 w-full sm:w-auto">
               <div className="relative flex-1 sm:flex-initial">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -158,20 +140,7 @@ const [viewDetailsData, setViewDetailsData] = useState(null);
 
 
               </div>
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-              >
-                <option value="All">All Status</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Under Review">Under Review</option>
-                <option value="Rejected">Rejected</option>
-              </select>
+           
 
             </div>
           </div>
@@ -186,83 +155,60 @@ const [viewDetailsData, setViewDetailsData] = useState(null);
                   <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
                   <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan No</th>
                   <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {currentApplications.map(app => (
-                  <tr key={app.id} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-sm">
-                          {app.customer.charAt(0)}
-                        </div>
-                        <span className="font-medium text-gray-800">{app.customer}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-gray-600 text-sm">{app.type}</td>
-                    <td className="p-4 font-semibold text-gray-900">{app.loanAmount}</td>
-                    <td className="p-4 text-gray-500 text-sm">{app.applicationDate}</td>
-                    <td className="p-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold border 
-                        ${app.status === "Approved" ? "bg-green-50 text-green-700 border-green-100" : ""}
-                        ${app.status === "Pending" ? "bg-orange-50 text-orange-700 border-orange-100" : ""}
-                        ${app.status === "Under Review" ? "bg-blue-50 text-blue-700 border-blue-100" : ""}
-                        ${app.status === "Rejected" ? "bg-red-50 text-red-700 border-red-100" : ""}
-                      `}>
-                        {app.status}
-                      </span>
-                    </td>
+         <tbody className="divide-y divide-gray-100">
+  {currentApplications.map(app => (
+    <tr key={app.id} className="hover:bg-gray-50/80">
 
-                    <td className="p-4 text-right">
-                      <div
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                      >
-                        <ActionMenu
-                          position="bottom-right"
-                          showStatus
-                          statusInfo={{
-                            title: app.customer,
-                            status: app.status.toLowerCase(),
-                            statusText: app.status,
-                            subtitle: app.applicationDate
-                          }}
-                          items={[
-                            {
-                              label: "View Details",
-                              icon: Eye,   // ✅ FIX
-                              onClick: () => {
-  setViewDetailsData(app);
-  setShowViewDetails(true);
-}
+      {/* CUSTOMER */}
+      <td className="p-4 font-medium text-gray-800">
+        {app.customer}
+      </td>
 
-                            },
-                            {
-                              label: "Approve Loan",
-                              icon: Check, // ✅ FIX
-                              onClick: () => updateStatus(app.id, "Approved"),
-                              disabled: app.status === "Approved"
-                            },
-                            {
-                              label: "Reject Loan",
-                              icon: X,     // ✅ FIX
-                              danger: true,
-                              onClick: () => updateStatus(app.id, "Rejected"),
-                              disabled: app.status === "Rejected"
-                            }
-                          ]}
-                        />
+      {/* TYPE */}
+      <td className="p-4 text-gray-600 text-sm">
+        {app.type}
+      </td>
 
-                      </div>
-                    </td>
+      {/* AMOUNT */}
+      <td className="p-4 font-semibold text-gray-900">
+        {app.loanAmount}
+      </td>
 
-                  </tr>
-                ))}
-              </tbody>
+      {/* DATE */}
+      <td className="p-4 text-gray-500 text-sm">
+        {app.applicationDate}
+      </td>
+
+      {/* LOAN NUMBER */}
+      <td className="p-4 text-sm font-mono text-blue-600">
+        {app.loanNumber}
+      </td>
+
+      {/* ACTIONS */}
+      <td className="p-4 text-right">
+        <ActionMenu
+          position="bottom-right"
+          items={[
+            {
+              label: "View Details",
+              icon: Eye,
+              onClick: () => {
+                setViewDetailsData(app);
+                setShowViewDetails(true);
+              }
+            }
+          ]}
+        />
+      </td>
+
+    </tr>
+  ))}
+</tbody>
+
             </table>
           </div>
 
@@ -287,11 +233,11 @@ const [viewDetailsData, setViewDetailsData] = useState(null);
         </div>
       </div>
       <ViewDetails
-  isOpen={showViewDetails}
-  onClose={() => setShowViewDetails(false)}
-  title="Loan Details"
-  data={viewDetailsData}
-/>
+        isOpen={showViewDetails}
+        onClose={() => setShowViewDetails(false)}
+        title="Loan Details"
+        data={viewDetailsData}
+      />
 
       <LoanStatementPopup
         isOpen={showStatementPopup}
