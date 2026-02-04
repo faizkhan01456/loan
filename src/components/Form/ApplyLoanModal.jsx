@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useCreateLead, useGetLeads } from "../../hooks/useLeads";
+import { useCreateLead } from "../../hooks/useLeads";
 import { useLoanTypes } from "../../hooks/useLoan";
 
 export default function ApplyLoanModal({ onClose }) {
@@ -11,51 +11,75 @@ export default function ApplyLoanModal({ onClose }) {
     gender: "",
     state: "",
     city: "",
-    pinCode: "",  
+    pinCode: "",
     address: "",
     loanTypeId: "",
     loanAmount: "",
   });
 
-
-
-  const { data: loanTypes = [], isLoading: loadingLoanTypes } = useLoanTypes();
+  const { data: loanTypesResponse = {}, isLoading: loadingLoanTypes } = useLoanTypes();
   const { mutate: createLead, isPending } = useCreateLead();
+
+  // Safely extract loanTypes from response
+  const loanTypes = React.useMemo(() => {
+    // Handle different possible response structures
+    if (!loanTypesResponse) return [];
+    
+    // Case 1: Direct array
+    if (Array.isArray(loanTypesResponse)) {
+      return loanTypesResponse;
+    }
+    
+    // Case 2: Object with data property
+    if (loanTypesResponse.data && Array.isArray(loanTypesResponse.data)) {
+      return loanTypesResponse.data;
+    }
+    
+    // Case 3: Object with other property names
+    if (loanTypesResponse.loanTypes && Array.isArray(loanTypesResponse.loanTypes)) {
+      return loanTypesResponse.loanTypes;
+    }
+    
+    // Case 4: Object with results property
+    if (loanTypesResponse.results && Array.isArray(loanTypesResponse.results)) {
+      return loanTypesResponse.results;
+    }
+    
+    // Default: empty array
+    return [];
+  }, [loanTypesResponse]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
- const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-const payload = {
-  fullName: formData.fullName,
-  email: formData.email,
-  contactNumber: formData.contactNumber,
-  dob: formData.dob,
-  gender: formData.gender,
-  city: formData.city,
-  state: formData.state,
-  pinCode: formData.pinCode,
-  address: formData.address,
-  loanTypeId: String(formData.loanTypeId),
-  loanAmount: Number(formData.loanAmount),
-};
+    const payload = {
+      fullName: formData.fullName,
+      email: formData.email,
+      contactNumber: formData.contactNumber,
+      dob: formData.dob,
+      gender: formData.gender,
+      city: formData.city,
+      state: formData.state,
+      pinCode: formData.pinCode,
+      address: formData.address,
+      loanTypeId: String(formData.loanTypeId),
+      loanAmount: Number(formData.loanAmount),
+    };
 
-
-
-
- createLead(payload, {
-  onSuccess: () => {
-    alert("Lead submitted successfully");
-    onClose();
-  },
-});
-
-};
-
-
+    createLead(payload, {
+      onSuccess: () => {
+        alert("Lead submitted successfully");
+        onClose();
+      },
+      onError: (error) => {
+        alert(`Error: ${error.message || "Failed to submit lead"}`);
+      }
+    });
+  };
 
   const handleClose = () => {
     onClose();
@@ -67,10 +91,6 @@ const payload = {
       onClose();
     }
   };
-
-
-
-
 
   return (
     <div
@@ -271,22 +291,25 @@ const payload = {
               value={formData.loanTypeId}
               onChange={handleChange}
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
+              disabled={loadingLoanTypes || loanTypes.length === 0}
+              className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">
-                {loadingLoanTypes ? "Loading loan types..." : "Select Loan Type"}
+                {loadingLoanTypes 
+                  ? "Loading loan types..." 
+                  : loanTypes.length === 0 
+                    ? "No loan types available" 
+                    : "Select Loan Type"}
               </option>
 
               {loanTypes.map((loan) => (
                 <option key={loan.id} value={loan.id}>
-                  {loan.name}   {/* USER ko sirf naam */}
+                  {loan.name || `Loan Type ${loan.id}`}
                 </option>
               ))}
             </select>
-
-
-
           </div>
+
           {/* Loan Amount */}
           <div className="xs:col-span-2 lg:col-span-1">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
@@ -306,15 +329,22 @@ const payload = {
 
           {/* Submit Button */}
           <div className="xs:col-span-2 lg:col-span-2 mt-2 sm:mt-4 lg:mt-6">
-              <button
-                type="submit"
-                disabled={isPending}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white"
-              >
-                {isPending ? "Submitting..." : "SUBMIT"}
-              </button>
-
-            </div>
+            <button
+              type="submit"
+              disabled={isPending || loanTypes.length === 0}
+              className={`w-full py-2.5 sm:py-3 text-sm sm:text-base font-medium rounded-lg transition-all ${
+                isPending || loanTypes.length === 0
+                  ? 'bg-gray-400 cursor-not-allowed text-gray-700'
+                  : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg'
+              }`}
+            >
+              {isPending 
+                ? "Submitting..." 
+                : loanTypes.length === 0 
+                  ? "No Loan Types Available" 
+                  : "SUBMIT"}
+            </button>
+          </div>
         </form>
 
         {/* Footer Note */}

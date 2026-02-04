@@ -502,7 +502,7 @@ export default function Header() {
                 <span className="text-white font-bold text-lg">F</span>
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-blue-700">Finova Capital</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-blue-700">Azzunique Capital</h1>
                 <p className="text-xs text-gray-500 hidden sm:block">Financial Solutions</p>
               </div>
             </Link>

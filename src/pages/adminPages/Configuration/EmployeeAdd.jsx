@@ -1109,7 +1109,7 @@ const fetchEmployees = async () => {
                 <tr>
                   <th className="px-6 py-4">Emp ID</th>
                   <th className="px-6 py-4">Employee Name</th>
-                  <th className="px-6 py-4">Department</th>
+                  <th className="px-6 py-4">Department</th> 
                   <th className="px-6 py-4">Designation</th>
                   <th className="px-6 py-4">Contact</th>
                   <th className="px-6 py-4">Salary</th>
