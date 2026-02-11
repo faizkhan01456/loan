@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import Button from '../../../components/admin/common/Button';
 import StatusCard from '../../../components/admin/common/StatusCard';
-import ExportButton from '../../../components/admin/AdminButtons/ExportButton';
 import ActionMenu from '../../../components/admin/AdminButtons/ActionMenu';
 import Pagination from '../../../components/admin/common/Pagination';
 
@@ -960,7 +959,7 @@ const Vouchers = () => {
           <p className="text-gray-500 mt-1">Create and manage accounting vouchers</p>
         </div>
         
-                        <ExportButton onClick={handleExport} />
+                        <Button onClick={handleExport} />
 
         
       </div>

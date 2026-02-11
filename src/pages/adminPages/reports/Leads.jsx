@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Phone, MoreVertical, ChevronLeft, ChevronRight, Mail, MapPin, PhoneCall, Edit, Trash2, User } from 'lucide-react';
 import { useGetLeads } from '../../../hooks/useLeads';
 import Pagination from '../../../components/admin/common/Pagination';
-import ActionMenu from '../../../components/admin/AdminButtons/ActionMenu';
+import ActionMenu from '../../../components/admin/common/ActionMenu';
 
 const Leads = () => {
   const { data: responseData = {}, isLoading } = useGetLeads();

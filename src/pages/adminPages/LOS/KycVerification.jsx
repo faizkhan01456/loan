@@ -448,14 +448,6 @@ export default function KycVerification() {
           </h1>
           <p className="text-gray-500 mt-1 ml-11">Verify customer identity, review documents, and manage compliance.</p>
         </div>
-        <div className="flex gap-3">
-           <button className="px-4 py-2 bg-white border rounded-lg text-gray-600 hover:bg-gray-50 flex items-center gap-2 text-sm font-medium">
-              <RefreshCw size={16} /> Sync with Digilocker
-           </button>
-           <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm font-medium">
-              <CreditCard size={16} /> Check CIBIL
-           </button>
-        </div>
       </div>
 
       {/* KPI Cards */}

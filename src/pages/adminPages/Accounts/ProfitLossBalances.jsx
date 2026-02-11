@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Download, Printer, TrendingUp, IndianRupee, Building, BarChart3, PieChart, FileText, Calendar, ChevronRight, RefreshCw, DownloadCloud, Share2, Target, AlertCircle, CheckCircle, } from "lucide-react";
-import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
 import StatusCard from "../../../components/admin/common/StatusCard";
 import Button from "../../../components/admin/common/Button";
 
@@ -993,7 +992,7 @@ const ProfitLossBalances = () => {
           </div>
 
           <div className="flex items-center gap-2 mt-4 md:mt-0">
-            <ExportButton onClick={handleExport} />
+            <Button onClick={handleExport} />
           </div>
         </div>
 

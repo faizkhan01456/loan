@@ -16,8 +16,7 @@ import {
   Calculator
 } from 'lucide-react';
 import Button from '../../../components/admin/common/Button';
-import ExportButton from '../../../components/admin/AdminButtons/ExportButton';
-import ActionMenu from '../../../components/admin/AdminButtons/ActionMenu';
+import ActionMenu from '../../../components/admin/common/ActionMenu';
 import EmiForm from '../../../components/admin/modals/EmiForm';
 import Pagination from '../../../components/admin/common/Pagination';
 
@@ -450,7 +449,7 @@ function EMIManagement() {
           <p className="text-gray-500 mt-1">Manage customer loan EMI schedules and repayment tracking</p>
         </div>
         <div className="flex gap-3">
-          <ExportButton
+          <Button
             label="Export"
             onClick={handleExport}
           />

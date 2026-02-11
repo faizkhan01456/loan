@@ -20,9 +20,9 @@ import {
   Copy,
   CheckCircle,
 } from 'lucide-react';
-import ExportButton from '../../../components/admin/AdminButtons/ExportButton';
 import ActionMenu from '../../../components/admin/AdminButtons/ActionMenu';
 import Pagination from '../../../components/admin/common/Pagination';
+import Button from '../../../components/admin/common/Button';
 
 function BalanceReport() {
   const [activeSection, setActiveSection] = useState('cases-balance-loan');
@@ -231,7 +231,7 @@ function BalanceReport() {
           <p className="text-gray-500 mt-1">Comprehensive view of all financial balances</p>
         </div>
         <div className="flex gap-3">
-          <ExportButton
+          <Button
             label="Export"
             onClick={handleExportData}
           />

@@ -51,7 +51,6 @@ import SarfaesiAuctionNotices from "./pages/publicPages/SarfaesiAuctionNotices.j
 import AdminRoute from "./routes/AdminRoute.jsx";
 import Dashboard from "./pages/mainPages/dashboard.jsx";
 
-import Los from "./pages/adminPages/Los.jsx";
 import LoanRequests from "./pages/adminPages/LoanRequests.jsx";
 import Borrowers from "./pages/adminPages/Borrowers.jsx";
 import Configuration from "./pages/adminPages/Configuration.jsx";
@@ -62,8 +61,6 @@ import LoanEntry from "./pages/adminPages/Lms/LoanEntry.jsx";
 import Nach from "./pages/adminPages/Lms/Nach.jsx";
 import PdcReceipt from "./pages/adminPages/Lms/PdcReceipt.jsx";
 import Customer from "./pages/adminPages/Lms/Customer.jsx";
-import Disbursement from "./pages/adminPages/Lms/Disbursement.jsx";
-import EMIManagement from "./pages/adminPages/Lms/EmiManagement.jsx";
 import LoanCloser from "./pages/adminPages/Lms/LoanCloser.jsx";
 import Task from "./pages/adminPages/Lms/Task.jsx";
 import Waiver from "./pages/adminPages/Lms/Waiver.jsx";
@@ -77,7 +74,6 @@ import LoanSwap from "./pages/adminPages/Configuration/LoanSwap.jsx";
 import LoanProduct from "./pages/adminPages/Configuration/LoanProduct.jsx";
 import Location from "./pages/adminPages/Configuration/Location.jsx";
 import MastersSetup from "./pages/adminPages/Configuration/MastersSetup.jsx";
-import KycVerification from "./pages/adminPages/Configuration/KycVerification.jsx";
 import CreditAsignment from "./pages/adminPages/Configuration/CreditAsignment.jsx";
 import VehicleMasters from "./pages/adminPages/Configuration/VehicleMasters.jsx";
 import ConsumerDurable from "./pages/adminPages/Configuration/ConsumerDurable.jsx";
@@ -98,6 +94,16 @@ import SecuritySettings from "./pages/adminPages/SystemSettings/SecuritySettings
 import PaymentSettings from "./pages/adminPages/SystemSettings/PaymentSettings.jsx";
 import Leads from "./pages/adminPages/reports/Leads.jsx";
 import Profile from "./components/Profile.jsx";
+import KycVerification from "./pages/adminPages/LOS/KycVerification.jsx";
+import EMIManagement from "./pages/adminPages/LOS/EmiManagement.jsx";
+import Applications from "./pages/adminPages/LOS/Applications.jsx";
+import PermissionManagement from "./pages/adminPages/PermissionManagement.jsx";
+import DisbursementManagement from "./pages/adminPages/LOS/Disbursement.jsx";
+import CreditCheck from "./pages/adminPages/LOS/CreditCheck.jsx";
+import TechnicalReview from "./pages/adminPages/LOS/TechnicalReview.jsx";
+import LegalCompliance from "./pages/adminPages/LOS/LegalCompliance.jsx";
+import Documents from "./pages/adminPages/LOS/Documents.jsx";
+import Sanction from "./pages/adminPages/LOS/Sanction.jsx";
 
 
 function App() {
@@ -159,19 +165,29 @@ function App() {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="los" element={<Los />} />
         <Route path="loan-requests" element={<LoanRequests />} />
         <Route path="borrowers" element={<Borrowers />} />
         <Route path="configuration" element={<Configuration />} />
         <Route path="admin-roles" element={<AdminRoles />} />
+        <Route path="permission-management" element={<PermissionManagement />} />
 
+        {/* LOS */}
+        <Route path="los/kyc-verification" element={<KycVerification />} />
+        <Route path="los/emi-management" element={<EMIManagement />} />
+        <Route path="los/applications" element={<Applications />} />
+        <Route path="los/disbursement" element={<DisbursementManagement />} />
+        <Route path="los/credit-check" element={<CreditCheck />} />
+        <Route path="los/technical-review" element={<TechnicalReview />} />
+        <Route path="los/legal-compliance" element={<LegalCompliance />} />
+        <Route path="los/documents" element={<Documents />} />
+        <Route path="los/sanction" element={<Sanction />} />
+        
         {/* LMS */}
         <Route path="loanEntry" element={<LoanEntry />} />
         <Route path="nach" element={<Nach />} />
         <Route path="PdcReceipts" element={<PdcReceipt />} />
         <Route path="Customer" element={<Customer />} />
-        <Route path="Disbursement" element={<Disbursement />} />
-        <Route path="emi-management" element={<EMIManagement />} />
+        
         <Route path="loan-closer" element={<LoanCloser />} />
         <Route path="task" element={<Task />} />
         <Route path="waiver" element={<Waiver />} />
@@ -185,7 +201,7 @@ function App() {
         <Route path="configuration/loan-product" element={<LoanProduct />} />
         <Route path="configuration/location" element={<Location />} />
         <Route path="configuration/masters-setup" element={<MastersSetup />} />
-        <Route path="configuration/kyc-verification" element={<KycVerification />} />
+        
         <Route path="configuration/credit-asignment" element={<CreditAsignment />} />
         <Route path="configuration/vehicle-masters" element={<VehicleMasters />} />
         <Route path="configuration/consumer-durable" element={<ConsumerDurable />} />

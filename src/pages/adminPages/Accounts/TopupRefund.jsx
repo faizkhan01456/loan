@@ -25,7 +25,6 @@ import {
   MoreVertical
 } from 'lucide-react';
 import Button from '../../../components/admin/common/Button';
-import ExportButton from '../../../components/admin/AdminButtons/ExportButton';
 import StatusCard from '../../../components/admin/common/StatusCard';
 import ActionMenu from '../../../components/admin/AdminButtons/ActionMenu';
 import Pagination from '../../../components/admin/common/Pagination';
@@ -419,7 +418,7 @@ function TopupRefund() {
           <p className="text-gray-500 mt-1">Manage all your wallet transactions in one place</p>
         </div>
         <div className="flex gap-3">
-          <ExportButton
+          <Button
             label="Export"
             onClick={handleExport}
           />

@@ -1,25 +1,15 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Search,
-  Filter,
-  Download,
-  Calendar,
-  ChevronDown,
-  Printer,
   FileText,
   Plus,
-  RefreshCw,
   Building,
-  BookOpen,
-  ChevronLeft,
-  ChevronRight,
   TrendingUp,
   TrendingDown,
   IndianRupee,
 } from "lucide-react";
 import Button from "../../../components/admin/common/Button";
 import StatusCard from "../../../components/admin/common/StatusCard";
-import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
 import TransactionBooksForm from "../../../components/admin/AdminForm/TransactionBooksForm";
 import Pagination from "../../../components/admin/common/Pagination";
 
@@ -737,7 +727,7 @@ const TransactionBooks = () => {
           <p className="text-gray-500 mt-1">Manage cash, bank, and day book transactions</p>
         </div>
         <div className="flex gap-3">
-          <ExportButton
+          <Button
             label="Export"
             onClick={handleExportExcel}
           />

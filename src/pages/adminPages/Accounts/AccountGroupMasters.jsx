@@ -13,7 +13,6 @@ import {
   Edit2,
   Trash2
 } from "lucide-react";
-import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
 import Button from "../../../components/admin/common/Button";
 import StatusCard from "../../../components/admin/common/StatusCard";
 import AddAccountForm from "../../../components/admin/AdminForm/AddAccountForm";
@@ -383,7 +382,7 @@ export default function AccountMaster() {
           <p className="text-gray-500 mt-1">Manage your chart of accounts</p>
         </div>
         <div className="flex gap-3">
-          <ExportButton
+          <Button
             label="Export"
             onClick={handleExport}
           />

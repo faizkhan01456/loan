@@ -6,8 +6,7 @@ import {
   Check,
   X
 } from "lucide-react";
-import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
-import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
+import ActionMenu from "../../../components/admin/common/ActionMenu";
 import Pagination from "../../../components/admin/common/Pagination";
 import Button from "../../../components/admin/common/Button";
 import LoanStatementPopup from "../../../components/admin/modals/LoanStatementPopup";
@@ -110,7 +109,7 @@ export default function LoanEntry() {
           >
             Download Statement
           </Button>
-          <ExportButton
+          <Button
             label="Export"
             onClick={handleExport}
           />

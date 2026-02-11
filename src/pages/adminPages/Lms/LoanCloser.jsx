@@ -14,8 +14,7 @@ import {
   AlertTriangle,
   Calendar
 } from "lucide-react";
-import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
-import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
+import ActionMenu from "../../../components/admin/common/ActionMenu";
 import Pagination from "../../../components/admin/common/Pagination";
 
 export default function LoanCloser() {

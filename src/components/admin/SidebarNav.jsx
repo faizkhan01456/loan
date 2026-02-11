@@ -61,10 +61,20 @@ export default function SidebarNav() {
         {
           name: "LOS",
           icon: <FilePlus2 size={20} />,
-          path: user?.role === "EMPLOYEE" ? "/employee/los" : "/admin/los",
-          permission: "VIEW_LOS"
-        },
+          permission: "VIEW_LOS",
+          subItems: [
 
+            { name: "Applications", path: "/admin/los/applications" },
+            { name: "Documents", path: "/admin/los/documents" },
+            { name: "Kyc Verification", path: "/admin/los/kyc-verification" },
+            { name: "Credit Check", path: "/admin/los/credit-check" },
+            { name: "Technical Review", path: "/admin/los/technical-review" },
+            { name: "Legal Compliance", path: "/admin/los/legal-compliance" },
+            { name: "EMI Management", path: "/admin/los/emi-management" },
+            { name: "Sanction", path: "/admin/los/sanction" },
+            {name: "Disbursement", path: "/admin/los/disbursement"},
+          ]
+        },
 
         // --- LMS SECTION ---
         {
@@ -103,22 +113,7 @@ export default function SidebarNav() {
               ]
             },
 
-            {
-              name: "Disbursement",
-              path: user?.role === "EMPLOYEE"
-                ? "/employee/disbursement"
-                : "/admin/disbursement",
-              permission: "VIEW_DISBURSEMENT"
-            },
-
-            {
-              name: "EMI Management",
-              path: user?.role === "EMPLOYEE"
-                ? "/employee/emi-management"
-                : "/admin/emi-management",
-              permission: "VIEW_EMI"
-            },
-
+            
             {
               name: "Loan Closer",
               path: user?.role === "EMPLOYEE"
@@ -224,7 +219,6 @@ export default function SidebarNav() {
             { name: "Loan Product", path: "/admin/configuration/loan-product" },
             { name: "Location", path: "/admin/configuration/location" },
             { name: "masters setup", path: "/admin/configuration/masters-setup" },
-            { name: "Kyc Verification", path: "/admin/configuration/kyc-verification" },
             { name: "Vehicle Masters", path: "/admin/configuration/vehicle-masters" },
             { name: "Consumer Durable", path: "/admin/configuration/consumer-durable" },
           ]

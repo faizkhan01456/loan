@@ -28,7 +28,6 @@ import {
   Copy,
   AlertCircle
 } from "lucide-react";
-import ExportButton from '../../../components/admin/AdminButtons/ExportButton';
 import Button from "../../../components/admin/common/Button";
 import StatusCard from "../../../components/admin/common/StatusCard";
 import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
@@ -201,7 +200,7 @@ const handleExport = () => {
           </div>
 
           <div className="flex gap-3 mt-4 md:mt-0">
-            <ExportButton onClick={handleExport}/>
+            <Button onClick={handleExport}/>
              
             <Button >
               <Plus size={18} />

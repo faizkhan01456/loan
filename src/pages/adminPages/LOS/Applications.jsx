@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Search, FileText, Check, Ban, AlertCircle } from 'lucide-react';
-import Button from '../../components/admin/common/Button';
-import LoanForm from '../../components/admin/AdminForm/LoanForm';
-import ActionMenu from '../../components/admin/AdminButtons/ActionMenu';
+import Button from '../../../components/admin/common/Button';
+import LoanForm from '../../../components/admin/AdminForm/LoanForm';
+import ActionMenu from '../../../components/admin/common/ActionMenu';
 import { useGetLoanApplications, useUpdateLoan }
-  from '../../hooks/useLoanApplication';
+  from '../../../hooks/useLoanApplication';
 
 
 
@@ -46,7 +46,7 @@ class LoanFormErrorBoundary extends React.Component {
   }
 }
 
-const LOSDashboard = () => {
+const Applications = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
@@ -79,10 +79,6 @@ const LOSDashboard = () => {
     rejected: applications.filter(a => a.status === 'Rejected').length,
     pending: applications.filter(a => a.status === 'Pending').length
   };
-
-
-
-
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900" onClick={() => setActiveMenu(null)}>
@@ -382,4 +378,4 @@ const DetailItem = ({ label, value, badge = false }) => (
   </div>
 );
 
-export default LOSDashboard;
+export default Applications;
