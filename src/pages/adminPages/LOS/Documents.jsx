@@ -26,9 +26,15 @@ import {
 import useDocuments from '../../../hooks/useDocuments';
 import UploadDocumentModal from '../../../components/admin/modals/UploadDocumentModal';
 import toast from 'react-hot-toast';
+import DynamicDocumentUpload from '../../../components/admin/modals/UploadDocumentModal';
+import useCoApplicants from '../../../hooks/useCoApplicants';
 
 const DocumentsManagementPage = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const {
+    coApplicants,
+    fetchCoApplicants
+  } = useCoApplicants();
 
   const {
     applications,
@@ -94,26 +100,26 @@ const DocumentsManagementPage = () => {
 
 
 
- const handleSubmitUpload = async ({
-  documentType,
-  documents,
-}) => {
-  try {
-    await uploadDocument(
-      selectedApplication.id,
-      documents[0].file,
-      documentType
-    );
+  const handleSubmitUpload = async ({
+    documentType,
+    documents,
+  }) => {
+    try {
+      await uploadDocument(
+        selectedApplication.id,
+        documents[0].file,
+        documentType
+      );
 
-    fetchDocumentsByLoanId(selectedApplication.id);
+      fetchDocumentsByLoanId(selectedApplication.id);
 
-    toast.success("✅ Document uploaded successfully");
+      toast.success("Document uploaded successfully");
 
-  } catch (error) {
-    console.error(error);
-    toast.error("❌ Failed to upload document");
-  }
-};
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to upload document");
+    }
+  };
 
 
 
@@ -274,14 +280,13 @@ const DocumentsManagementPage = () => {
                         {doc.category?.replace('_', ' ') || '—'}
                       </td>
                       <td className="px-6 py-4">
-                        <span 
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-  doc.applicantType === 'APPLICANT'
-    ? 'bg-blue-100 text-blue-700'
-    : 'bg-purple-100 text-purple-700'
-}`}
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${doc.applicantType === 'APPLICANT'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-purple-100 text-purple-700'
+                            }`}
 
-                          >
+                        >
                           {doc.applicantType === 'APPLICANT' ? 'Primary' : 'Co-applicant'}
                         </span>
                       </td>
@@ -350,12 +355,15 @@ const DocumentsManagementPage = () => {
             </div>
           </div>
         </div>
-        <UploadDocumentModal
-        isOpen={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
-        onSubmit={handleSubmitUpload}
-      />
-
+        <DynamicDocumentUpload
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          loanId={selectedApplication?.id}
+          coApplicants={coApplicants}
+          onUploadSuccess={() =>
+            fetchDocumentsByLoanId(selectedApplication.id)
+          }
+        />
       </div>
     );
   }
@@ -398,6 +406,7 @@ const DocumentsManagementPage = () => {
                 onClick={() => {
                   setSelectedApplication(app);
                   fetchDocumentsByLoanId(app.id);
+                  fetchCoApplicants(app.id);   // ADD THIS
                 }}
                 className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer"
               >
@@ -479,7 +488,7 @@ const DocumentsManagementPage = () => {
           </div>
         )}
       </div>
-      
+
     </div>
   );
 };
