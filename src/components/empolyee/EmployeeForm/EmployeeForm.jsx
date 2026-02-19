@@ -6,6 +6,7 @@ import {
   FileCheck, Download, X, Eye
 } from 'lucide-react';
 import axios from "axios";
+import toast from 'react-hot-toast';
 
 
 const EmployeeForm = ({
@@ -52,43 +53,38 @@ const EmployeeForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      fullName: formData.fullName,
-      email: formData.email,
-      password: formData.password,
-      role: "EMPLOYEE",
+    const user = JSON.parse(localStorage.getItem("user"));
+const branchId =
+  user?.branchId ||
+  user?.employee?.branchId ||
+  "";
+const payload = {
+  fullName: formData.fullName,
+  email: formData.email,
+  password: formData.password,
+  role: "EMPLOYEE",
+  contactNumber: formData.phone,
+  atlMobileNumber: formData.altPhone || formData.phone,
+  userName: formData.username,
+  dob: formData.dob,
+  dateOfJoining: formData.dateOfJoining,
+  gender: formData.gender.toUpperCase(),
+  maritalStatus: formData.maritalStatus.toUpperCase(),
+  designation: formData.designation,
+  department: formData.department,
+  emergencyContact: formData.emergencyContact,
+  emergencyRelationship: formData.emergencyRelation?.toUpperCase(),
+  address: formData.address,
+  city: formData.city,
+  state: formData.state,
+  pinCode: formData.pincode,
+  isActive: formData.status === "Active",
+  workLocation: formData.workLocation?.toUpperCase(),
+  salary: Number(formData.basicSalary),
+  branchId
+};
 
-      contactNumber: formData.phone,
-      mobileNumber: formData.phone,
-      atlMobileNumber: formData.altPhone || formData.phone,
 
-      userName: formData.username,
-
-      dob: formData.dob ? new Date(formData.dob) : null,
-      dateOfJoining: formData.dateOfJoining
-        ? new Date(formData.dateOfJoining)
-        : new Date(),
-
-      gender: formData.gender.toUpperCase(),
-      maritalStatus: formData.maritalStatus.toUpperCase(),
-
-      designation: formData.designation,
-      department: formData.department,
-
-      emergencyContact: formData.emergencyContact,
-      emergencyRelationship: formData.emergencyRelation?.toUpperCase(),
-
-      address: formData.address,
-      city: formData.city,
-      state: formData.state,
-      pinCode: formData.pincode,
-
-      isActive: formData.status === "Active",
-      workLocation: formData.workLocation?.toUpperCase(),
-
-      // ✅ BACKEND EXPECTS THIS
-      salary: Number(formData.basicSalary),
-    };
 
     // ✅ PAYLOAD DEBUG (yahin allowed hai)
     console.log("FINAL PAYLOAD 👉", payload);
@@ -102,11 +98,11 @@ const EmployeeForm = ({
       console.log("API RESPONSE 👉", res.data);
 
       if (res.status === 201 && res.data?.success) {
-        alert("✅ Employee Created Successfully");
-          onSuccess();        // 👈 REFRESH LIST
-          onCancel();         // modal close
+        toast.success(" Employee Created Successfully");
+        if (onSuccess) onSuccess();  
+        if (onCancel) onCancel();    
       } else {
-        alert("❌ Employee creation failed");
+        toast.alert(" Employee creation failed");
       }
 
     } catch (err) {
@@ -372,7 +368,12 @@ const EmployeeForm = ({
 
             <div className="space-y-1">
               <label className="text-xs font-semibold text-gray-500 uppercase">Relationship</label>
-              <select name="emergencyRelation">
+              <select
+                name="emergencyRelation"
+                value={formData.emergencyRelation}
+                onChange={handleChange}
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg"
+              >
                 <option value="FATHER">Father</option>
                 <option value="MOTHER">Mother</option>
                 <option value="SPOUSE">Spouse</option>
@@ -380,6 +381,7 @@ const EmployeeForm = ({
                 <option value="FRIEND">Friend</option>
                 <option value="OTHER">Other</option>
               </select>
+
 
             </div>
 

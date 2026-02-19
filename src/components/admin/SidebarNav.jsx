@@ -14,6 +14,14 @@ export default function SidebarNav() {
   const [expanded, setExpanded] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useSelector((state) => state.auth);
+  // 🔥 ROLE CHECK
+  const role = user?.role?.toUpperCase();
+
+  const isSuperAdmin = role === "SUPER_ADMIN";
+
+  const isBranchAdmin =
+    role === "ADMIN" && user?.branchId;
+
 
 
   // State for Level 1 Menu (like LMS, Configuration, Reports)
@@ -72,7 +80,7 @@ export default function SidebarNav() {
             { name: "Legal Compliance", path: "/admin/los/legal-compliance" },
             { name: "EMI Management", path: "/admin/los/emi-management" },
             { name: "Sanction", path: "/admin/los/sanction" },
-            {name: "Disbursement", path: "/admin/los/disbursement"},
+            { name: "Disbursement", path: "/admin/los/disbursement" },
           ]
         },
 
@@ -113,7 +121,7 @@ export default function SidebarNav() {
               ]
             },
 
-            
+
             {
               name: "Loan Closer",
               path: user?.role === "EMPLOYEE"
@@ -242,7 +250,9 @@ export default function SidebarNav() {
 
   const hasPermission = (permission) => {
     if (!user) return false;
-    if (user.role === "ADMIN") return true; // Admin ko sab allowed
+    if (["ADMIN", "SUPER_ADMIN"].includes(user.role?.toUpperCase())) {
+      return true;
+    }
     return user.permissions?.includes(permission);
   };
 
@@ -304,10 +314,34 @@ export default function SidebarNav() {
         {/* MENU LIST */}
         <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
           {menuItems.map((section, index) => {
-            // 🔒 Admin Control sirf ADMIN ke liye
-            if (section.category === "Admin Control" && user?.role !== "ADMIN") {
+
+            // 👑 SUPER ADMIN → SAB CATEGORY SHOW
+            if (isSuperAdmin) {
+              // No restriction
+            }
+
+            // 🔒 Admin Control only Admin types
+            else if (
+              section.category === "Admin Control" &&
+              !["ADMIN", "SUPER_ADMIN"].includes(role)
+            ) {
               return null;
             }
+
+            // 🏢 Branch Admin Category Restriction
+            if (isBranchAdmin) {
+              const allowedCategories = [
+                "Core",
+                "Loan Ops",
+                "Admin Control"
+              ];
+
+              if (!allowedCategories.includes(section.category)) {
+                return null;
+              }
+            }
+
+
 
             return (
               <div key={index} className="mb-6">
@@ -319,7 +353,28 @@ export default function SidebarNav() {
 
                 <div className="space-y-1 px-3">
                   {section.items
-                    .filter(item => !item.permission || hasPermission(item.permission))
+                    .filter((item) => {
+
+                      // 👑 SUPER ADMIN → SAB SHOW
+                      if (isSuperAdmin) {
+                        return true;
+                      }
+
+                      // 🏢 BRANCH ADMIN → LIMITED
+                      if (isBranchAdmin) {
+                        return [
+                          "Dashboard",
+                          "LOS",
+                          "LMS",
+                          "Configuration",
+                          "Leads"
+                        ].includes(item.name);
+                      }
+
+                      // 🔐 OTHER USERS → PERMISSION BASED
+                      return !item.permission || hasPermission(item.permission);
+                    })
+
                     .map((item) => {
 
                       const hasSubMenu = item.subItems && item.subItems.length > 0;

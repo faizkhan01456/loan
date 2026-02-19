@@ -1,5 +1,7 @@
+// useBranches.js
 import { useState, useEffect, useCallback } from "react";
 import api from "../lib/axios.config";
+import toast from "react-hot-toast";
 
 export default function useBranches() {
   const [branches, setBranches] = useState([]);
@@ -14,14 +16,20 @@ export default function useBranches() {
     const map = {};
     const roots = [];
 
+    // First pass: create map with empty subBranches array
     branchList.forEach((b) => {
-      map[b.id] = { ...b, subBranches: [] };
+      map[b.id] = { 
+        ...b, 
+        subBranches: [],
+        _count: b._count || { subBranches: 0 }
+      };
     });
 
+    // Second pass: build hierarchy
     branchList.forEach((b) => {
-      if (b.parentBranchId) {
-        map[b.parentBranchId]?.subBranches.push(map[b.id]);
-      } else {
+      if (b.parentBranchId && map[b.parentBranchId]) {
+        map[b.parentBranchId].subBranches.push(map[b.id]);
+      } else if (!b.parentBranchId) {
         roots.push(map[b.id]);
       }
     });
@@ -42,11 +50,14 @@ export default function useBranches() {
       if (res.data?.success) {
         const structured = buildHierarchy(res.data.data || []);
         setBranches(structured);
+      } else {
+        setBranches([]);
       }
     } catch (err) {
       console.error("Fetch branches failed:", err);
-      setError(err);
+      setError(err.response?.data?.message || err.message);
       setBranches([]);
+      toast.error("Failed to load branches");
     } finally {
       setLoading(false);
     }
@@ -57,13 +68,15 @@ export default function useBranches() {
   // -------------------------------
   const fetchMainBranches = useCallback(async () => {
     try {
-      const res = await api.get("/branches");
+      // Use the dedicated endpoint for main branches
+      const res = await api.get("/branches/main");
 
       if (res.data?.success) {
         setMainBranches(res.data.data || []);
       }
     } catch (err) {
       console.error("Fetch main branches failed:", err);
+      setMainBranches([]);
     }
   }, []);
 
@@ -72,12 +85,20 @@ export default function useBranches() {
   // -------------------------------
   const createBranch = async (payload) => {
     try {
-      await api.post("/branches", payload);
-      await fetchBranches();
-      return { success: true };
+      const res = await api.post("/branches", payload);
+      
+      if (res.data?.success) {
+        await fetchBranches();
+        await fetchMainBranches();
+        return { success: true, data: res.data.data };
+      }
+      return { success: false, error: new Error("Failed to create branch") };
     } catch (err) {
       console.error("Create branch failed:", err);
-      return { success: false, error: err };
+      return { 
+        success: false, 
+        error: err.response?.data || err 
+      };
     }
   };
 
@@ -86,36 +107,58 @@ export default function useBranches() {
   // -------------------------------
   const updateBranch = async (id, payload) => {
     try {
-      await api.put(`/branches/${id}`, payload);
-      await fetchBranches();
-      return { success: true };
+      const res = await api.put(`/branches/${id}`, payload);
+      
+      if (res.data?.success) {
+        await fetchBranches();
+        await fetchMainBranches();
+        return { success: true, data: res.data.data };
+      }
+      return { success: false, error: new Error("Failed to update branch") };
     } catch (err) {
       console.error("Update branch failed:", err);
-      return { success: false, error: err };
+      return { 
+        success: false, 
+        error: err.response?.data || err 
+      };
     }
   };
 
   // -------------------------------
-  // 🗑️ Delete Branch
+  // 🗑️ Delete Branch (soft delete)
   // -------------------------------
   const deleteBranch = async (id) => {
     try {
-      await api.delete(`/branches/${id}`);
-      await fetchBranches();
-      return { success: true };
+      const res = await api.delete(`/branches/${id}`);
+      
+      if (res.data?.success) {
+        await fetchBranches();
+        await fetchMainBranches();
+        return { success: true };
+      }
+      return { success: false, error: new Error("Failed to delete branch") };
     } catch (err) {
       console.error("Delete branch failed:", err);
-      return { success: false, error: err };
+      return { 
+        success: false, 
+        error: err.response?.data || err 
+      };
     }
   };
+
+  // -------------------------------
+  // 🔄 Refresh all data
+  // -------------------------------
+  const refreshBranches = useCallback(async () => {
+    await Promise.all([fetchBranches(), fetchMainBranches()]);
+  }, [fetchBranches, fetchMainBranches]);
 
   // -------------------------------
   // 🚀 Initial Load
   // -------------------------------
   useEffect(() => {
-    fetchBranches();
-    fetchMainBranches();
-  }, [fetchBranches, fetchMainBranches]);
+    refreshBranches();
+  }, [refreshBranches]);
 
   return {
     branches,
@@ -124,6 +167,7 @@ export default function useBranches() {
     error,
     fetchBranches,
     fetchMainBranches,
+    refreshBranches,
     createBranch,
     updateBranch,
     deleteBranch,

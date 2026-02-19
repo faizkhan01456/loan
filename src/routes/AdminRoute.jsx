@@ -4,19 +4,16 @@ import { Navigate } from "react-router-dom";
 export default function AdminRoute({ children }) {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-  
-  
-
-  // 1. Login nahi hai
-  // if (!isAuthenticated) {
-  //   return <Navigate to="/" replace />;
-  // }
-
-  // 2. Login hai but admin nahi
-  if (user?.role !== "ADMIN") {
+  if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
-  // 3. Admin hai → allow
+  const role = user?.role?.toUpperCase();
+
+  // ✅ Allow SUPER_ADMIN + ADMIN
+  if (!["ADMIN", "SUPER_ADMIN"].includes(role)) {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 }

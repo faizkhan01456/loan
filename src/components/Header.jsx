@@ -17,6 +17,17 @@ export default function Header() {
   // ✅ Redux hooks
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+  // 🔥 ROLE CHECK
+  const role = user?.role?.toUpperCase();
+
+const isSuperAdmin = role === "SUPER_ADMIN";
+
+const isBranchAdmin =
+  role === "ADMIN" && user?.branchId;
+
+
+
+
 
   const handleApplyLoanModal = () => {
     setShowModal(true);
@@ -57,7 +68,7 @@ export default function Header() {
         setShowUserDropdown(false);
       }
     };
-    
+
     document.addEventListener('click', handleClickOutside);
     return () => {
       document.removeEventListener('click', handleClickOutside);
@@ -79,8 +90,8 @@ export default function Header() {
       { name: "Financial Information", link: "/financial-information" },
       { name: "Annual Report", link: "/annual-report" },
       { name: "Committees", link: "/committees" },
-      { 
-        name: "Corporate Governance", 
+      {
+        name: "Corporate Governance",
         link: "/corporate-governance",
         submenu: [
           { name: "Policies and Codes", link: "/policies-and-codes" },
@@ -88,8 +99,8 @@ export default function Header() {
           { name: "Credit Rating", link: "/credit-rating" },
         ],
       },
-      { 
-        name: "Shareholder Information", 
+      {
+        name: "Shareholder Information",
         link: "/shareholder-information",
         submenu: [
           { name: "Notice Of AGM/EGM/Postal ballot", link: "/notice-Of-ballot" },
@@ -165,7 +176,7 @@ export default function Header() {
           <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center text-white font-semibold">
             {getInitials()}
           </div>
-          
+
           {/* User Info (hidden on smaller screens) */}
           <div className="hidden md:block text-left">
             <div className="text-sm font-semibold text-gray-800 truncate max-w-[120px]">
@@ -175,7 +186,7 @@ export default function Header() {
               {user?.role || 'User'}
             </div>
           </div>
-          
+
           <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
         </button>
 
@@ -212,8 +223,9 @@ export default function Header() {
                 <User className="w-4 h-4" />
                 <span>My Profile</span>
               </Link>
-              
-              {user?.role === 'ADMIN' && (
+
+              {["ADMIN", "SUPER_ADMIN"].includes(user?.role?.toUpperCase()) && (
+
                 <Link
                   to="/admin"
                   className="flex items-center space-x-2 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-all"
@@ -278,10 +290,10 @@ export default function Header() {
             </div>
           </div>
         </div>
-        
+
         <div className="flex space-x-2 mt-3">
           <Link
-            to="/profile"
+            to="/admin/profile"
             className="flex-1 bg-white text-blue-600 py-2 rounded-lg text-center font-medium hover:bg-blue-50 transition"
             onClick={() => setIsMobileMenuOpen(false)}
           >
@@ -307,14 +319,13 @@ export default function Header() {
             <div key={i} className="relative group/item">
               <Link
                 to={item.link}
-                className={`flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all rounded-lg ${
-                  item.submenu ? "font-semibold" : ""
-                }`}
+                className={`flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all rounded-lg ${item.submenu ? "font-semibold" : ""
+                  }`}
               >
                 <span>{item.name}</span>
                 {item.submenu && <ChevronDown className="w-4 h-4 transform -rotate-90" />}
               </Link>
-              
+
               {item.submenu && (
                 <div className="absolute left-full top-0 ml-1 w-72 bg-white border border-gray-200 shadow-2xl rounded-lg opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transform -translate-x-2 transition-all duration-300 ease-out z-50">
                   <div className="p-3">
@@ -346,6 +357,17 @@ export default function Header() {
             {title}
           </h4>
           <div className="space-y-2">
+            {/* DASHBOARD MOBILE */}
+            {(isSuperAdmin || isBranchAdmin) && (
+              <Link
+                to="/admin"
+                className="block py-4 px-4 bg-gradient-to-r from-blue-50 to-white rounded-xl hover:from-blue-100 hover:to-blue-50 transition-all font-semibold text-gray-900 border border-blue-100"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
+
             {items.map((item, i) => (
               <div key={i}>
                 <Link
@@ -396,7 +418,7 @@ export default function Header() {
           </button>
 
           <h3 className="text-lg font-bold text-gray-900 mb-4 px-2">{mobileSubmenu}</h3>
-          
+
           <div className="space-y-2">
             {items.map((item, i) => (
               <div key={i}>
@@ -469,7 +491,7 @@ export default function Header() {
         >
           Contact Us
         </Link>
-        
+
         {/* Login/Logout button for mobile when not logged in */}
         {!isAuthenticated && (
           <button
@@ -493,8 +515,8 @@ export default function Header() {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between py-4">
             {/* Logo - Home page link */}
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -509,14 +531,24 @@ export default function Header() {
 
             {/* Desktop Navigation (1024px and above) */}
             <nav className="hidden xl:flex items-center space-x-1">
-              <Link 
-                to="/" 
+              {/* DASHBOARD LINK */}
+              {(isSuperAdmin || isBranchAdmin) && (
+                <Link
+                  to="/admin"
+                  className="px-4 py-2 text-gray-700 hover:text-blue-600 transition-all font-medium rounded-lg hover:bg-blue-50"
+                >
+                  Dashboard
+                </Link>
+              )}
+
+              <Link
+                to="/"
                 className="px-4 py-2 text-gray-700 hover:text-blue-600 transition-all font-medium rounded-lg hover:bg-blue-50"
               >
                 Home
               </Link>
-              <Link 
-                to="/products" 
+              <Link
+                to="/products"
                 className="px-4 py-2 text-gray-700 hover:text-blue-600 transition-all font-medium rounded-lg hover:bg-blue-50"
               >
                 Products
@@ -533,8 +565,8 @@ export default function Header() {
                 </div>
               ))}
 
-              <Link 
-                to="/contact" 
+              <Link
+                to="/contact"
                 className="px-4 py-2 text-gray-700 hover:text-blue-600 transition-all font-medium rounded-lg hover:bg-blue-50"
               >
                 Contact Us
@@ -543,6 +575,15 @@ export default function Header() {
 
             {/* Tablet Navigation (768px - 1279px) */}
             <nav className="hidden lg:flex xl:hidden items-center space-x-1">
+              {(isSuperAdmin || isBranchAdmin) && (
+                <Link
+                  to="/admin"
+                  className="px-3 py-2 text-sm text-gray-700 hover:text-blue-600 transition-all rounded-lg hover:bg-blue-50"
+                >
+                  Dashboard
+                </Link>
+              )}
+
               <Link to="/" className="px-3 py-2 text-sm text-gray-700 hover:text-blue-600 transition-all rounded-lg hover:bg-blue-50">
                 Home
               </Link>
@@ -553,14 +594,13 @@ export default function Header() {
               {/* Tablet Dropdown Menus */}
               {Object.entries(navigationItems).map(([title, items]) => (
                 <div key={title} className="relative">
-                  <button 
+                  <button
                     className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-700 hover:text-blue-600 transition-all rounded-lg hover:bg-blue-50"
                     onClick={() => setActiveDropdown(activeDropdown === title ? null : title)}
                   >
                     <span>{title}</span>
-                    <ChevronDown className={`w-3 h-3 transition-transform ${
-                      activeDropdown === title ? 'rotate-180' : ''
-                    }`} />
+                    <ChevronDown className={`w-3 h-3 transition-transform ${activeDropdown === title ? 'rotate-180' : ''
+                      }`} />
                   </button>
                   {activeDropdown === title && (
                     <TabletDropdownMenu items={items} title={title} />
@@ -587,7 +627,7 @@ export default function Header() {
                   Login
                 </button>
               )}
-              
+
               {/* Apply For Loan Button (always visible) */}
               <button
                 onClick={handleApplyLoanModal}
@@ -616,8 +656,8 @@ export default function Header() {
             {/* Header with Home link */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
               <div className="flex items-center justify-between mb-6">
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="flex items-center space-x-3"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -636,7 +676,7 @@ export default function Header() {
                   <X size={20} />
                 </button>
               </div>
-              
+
               {/* Quick Actions - Only show Apply Loan button if not logged in */}
               {!isAuthenticated && (
                 <div className="space-y-3">
@@ -674,7 +714,7 @@ export default function Header() {
 
       {/* Overlay for tablet dropdowns */}
       {activeDropdown && (
-        <div 
+        <div
           className="fixed inset-0 z-40 lg:block xl:hidden bg-black bg-opacity-10"
           onClick={() => setActiveDropdown(null)}
         />
