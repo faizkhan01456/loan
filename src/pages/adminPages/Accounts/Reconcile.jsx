@@ -23,8 +23,8 @@ import {
   Target,
   Zap
 } from 'lucide-react';
-import ExportButton from '../../../components/admin/AdminButtons/ExportButton';
 import StatusCard from '../../../components/admin/common/StatusCard';
+import Button from '../../../components/admin/common/Button';
 
 
 function Reconcile() {
@@ -466,7 +466,7 @@ const handleExport = () => {
               </div>
             </div>
 
-            <ExportButton onClick={handleExport} />
+            <Button onClick={handleExport} />
           </div>
 
           {/* Summary Cards */}

@@ -13,8 +13,8 @@ import {
   CreditCard,
   User,
 } from "lucide-react";
-import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
-import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
+import ActionMenu from "../../../components/admin/common/ActionMenu";
+import Button from "../../../components/admin/common/Button";
 
 export default function NACH() {
   // --- STATE ---
@@ -158,7 +158,7 @@ export default function NACH() {
         </div>
 
         <div className="flex items-center gap-3">
-          <ExportButton label="Export" onClick={handleExport} />
+          <Button label="Export" onClick={handleExport} />
           <button
             onClick={() => setShowModal(true)}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg flex items-center gap-2 font-medium transition transform active:scale-95"

@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { LucideX, LucideLoader, LucideCheck, LucideAlertCircle } from 'lucide-react';
+import { 
+  LucideX, 
+  LucideLoader, 
+  LucideCheck, 
+  LucideAlertCircle 
+} from 'lucide-react';
+import axios from 'axios';
 
 const PermissionCreateModal = ({ open, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -31,35 +37,35 @@ const PermissionCreateModal = ({ open, onClose, onSuccess }) => {
         ...prev,
         [name]: value
       }));
-    } else if (name === 'code') {
-      // Auto-generate code from name if code field is empty or user hasn't modified it
-      if (value === '' && formData.name) {
-        // Auto-generate code from name
-        const generatedCode = formData.name
+      
+      // Auto-generate code from name if code field is empty
+      if (!formData.code) {
+        const generatedCode = value
           .toLowerCase()
           .replace(/\s+/g, '_')
-          .replace(/[^a-z0-9_-]/g, '')
+          .replace(/[^a-z0-9_]/g, '') // Remove hyphens, keep only underscores
           .replace(/_+/g, '_')
-          .replace(/^-+|-+$/g, '');
+          .replace(/^_|_$/g, '');
         
         setFormData(prev => ({
           ...prev,
-          [name]: generatedCode
-        }));
-      } else {
-        // Manual code input - sanitize
-        const sanitizedValue = value
-          .toLowerCase()
-          .replace(/\s+/g, '_')
-          .replace(/[^a-z0-9_-]/g, '')
-          .replace(/_+/g, '_')
-          .replace(/^-+|-+$/g, '');
-        
-        setFormData(prev => ({
-          ...prev,
-          [name]: sanitizedValue
+          code: generatedCode
         }));
       }
+    } else if (name === 'code') {
+      // Manual code input - sanitize to match backend schema
+      const sanitizedValue = value
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-z0-9_-]/g, '') // Keep hyphens and underscores
+        .replace(/_+/g, '_')
+        .replace(/-+/g, '-')
+        .replace(/^[-_]|[-_]$/g, ''); // Remove leading/trailing hyphens/underscores
+      
+      setFormData(prev => ({
+        ...prev,
+        [name]: sanitizedValue
+      }));
     }
   };
 
@@ -71,17 +77,17 @@ const PermissionCreateModal = ({ open, onClose, onSuccess }) => {
       newErrors.name = 'Permission name is required';
     } else if (formData.name.length < 2) {
       newErrors.name = 'Name must be at least 2 characters';
-    } else if (formData.name.length > 100) {
-      newErrors.name = 'Name must be less than 100 characters';
+    } else if (formData.name.length > 255) {
+      newErrors.name = 'Name must be less than 255 characters';
     }
     
-    // Validate code
+    // Validate code - match backend schema
     if (!formData.code.trim()) {
       newErrors.code = 'Permission code is required';
     } else if (formData.code.length < 2) {
       newErrors.code = 'Code must be at least 2 characters';
-    } else if (formData.code.length > 50) {
-      newErrors.code = 'Code must be less than 50 characters';
+    } else if (formData.code.length > 100) {
+      newErrors.code = 'Code must be less than 100 characters';
     } else if (!/^[a-z0-9][a-z0-9_-]*[a-z0-9]$/.test(formData.code)) {
       newErrors.code = 'Code must contain only lowercase letters, numbers, hyphens, or underscores, and cannot start/end with hyphen/underscore';
     }
@@ -101,16 +107,18 @@ const PermissionCreateModal = ({ open, onClose, onSuccess }) => {
     setLoading(true);
     
     try {
-      const response = await api.post('/permissions/create-permissions', {
-        code: formData.code,
-        name: formData.name.trim()
-      }, {
-        withCredentials: true
-      });
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/permissions/create-permissions`,
+        {
+          code: formData.code,
+          name: formData.name.trim()
+        },
+        { withCredentials: true }
+      );
       
       if (response.data.success) {
         resetForm();
-        onSuccess && onSuccess(response.data.data);
+        if (onSuccess) onSuccess(response.data.data);
         onClose();
       } else {
         setApiError(response.data.message || 'Failed to create permission');
@@ -207,7 +215,7 @@ const PermissionCreateModal = ({ open, onClose, onSuccess }) => {
                   </p>
                 )}
                 <p className="mt-2 text-xs text-gray-500">
-                  Descriptive name of the permission
+                  Descriptive name of the permission (max 255 characters)
                 </p>
               </div>
 
@@ -241,7 +249,7 @@ const PermissionCreateModal = ({ open, onClose, onSuccess }) => {
                   </p>
                 ) : (
                   <p className="mt-2 text-xs text-gray-500">
-                    Lowercase letters, numbers, hyphens, underscores only
+                    Lowercase letters, numbers, hyphens, underscores only (max 100 characters)
                   </p>
                 )}
               </div>

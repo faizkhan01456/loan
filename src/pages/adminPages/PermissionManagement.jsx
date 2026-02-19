@@ -1,80 +1,36 @@
+// PermissionManagement.jsx
 import React, { useState, useEffect } from 'react';
-import { LucideCheck, LucideSave, LucideUser, LucideKey, LucideAlertCircle, LucideLoader, Check, Save, User, Key, Loader, Loader2 } from 'lucide-react';
-import axios from "axios";
+import { 
+  LucideSave, 
+  LucideUser, 
+  LucideKey, 
+  LucideAlertCircle, 
+  LucideLoader,
+  LucidePlus,
+  LucideCheckCircle
+} from 'lucide-react';
 import PermissionCreateModal from '../../components/admin/modals/PermissionCreateModal';
-
+import { usePermissions } from '../../hooks/usePermission';
 
 const PermissionManagement = () => {
-  // State management
-  const [users, setUsers] = useState([]);
-  const [permissions, setPermissions] = useState([]);
+  const {
+    myPermissions,
+    allPermissions,
+    users,
+    loading,
+    error: hookError,
+    hasPermission,
+    createPermission,
+    assignPermissions,
+    getUserPermissions,
+    refreshAll
+  } = usePermissions();
+
   const [selectedUser, setSelectedUser] = useState('');
   const [userPermissions, setUserPermissions] = useState([]);
-  const [permissionLoading, setPermissionLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [allPermissions, setAllPermissions] = useState([]); // UI list
-const [myPermissions, setMyPermissions] = useState([]);   // logged-in user
-
-
-  
-  const [loading, setLoading] = useState({
-    users: false,
-    permissions: false,
-    userPermissions: false,
-    saving: false
-  });
-  const [error, setError] = useState('');
+  const [localError, setLocalError] = useState('');
   const [success, setSuccess] = useState('');
-
-  const hasPermission = (code) => {
-  return myPermissions.some(p => p.code === code);
-};
-
-  // Fetch all users (EMPLOYEE and PARTNER only)
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(prev => ({ ...prev, users: true }));
-      setError('');
-      try {
-        // Adjust this endpoint as per your backend
-        const response = await axios.get(
-  `${import.meta.env.VITE_API_BASE_URL}/users`,
-  { withCredentials: true }
-);
-
-        setUsers(response.data.data || []);
-      } catch (err) {
-        setError('Failed to load users. Please try again.');
-        console.error('Error fetching users:', err);
-      } finally {
-        setLoading(prev => ({ ...prev, users: false }));
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-
-  const fetchPermissions = async () => {
-  try {
-    const res = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/permissions/user/me`,
-      { withCredentials: true }
-    );
-    setPermissions(res.data.data || []);
-  } catch (err) {
-    console.error("Permission fetch failed", err);
-  } finally {
-    setPermissionLoading(false);
-  }
-};
-
-  // Fetch all available permissions
-useEffect(() => {
-  fetchPermissions();
-}, []);
-
-
 
   // Fetch user permissions when user is selected
   useEffect(() => {
@@ -83,28 +39,17 @@ useEffect(() => {
         setUserPermissions([]);
         return;
       }
-    
 
-
-      setLoading(prev => ({ ...prev, userPermissions: true }));
-      setError('');
       try {
-        const response = await axios.get(
-  `${import.meta.env.VITE_API_BASE_URL}/permissions/user/${selectedUser}`,
-  { withCredentials: true }
-);
-
-        setUserPermissions(response.data.data || []);
+        const perms = await getUserPermissions(selectedUser);
+        setUserPermissions(perms || []);
       } catch (err) {
-        setError('Failed to load user permissions. Please try again.');
-        console.error('Error fetching user permissions:', err);
-      } finally {
-        setLoading(prev => ({ ...prev, userPermissions: false }));
+        setLocalError('Failed to load user permissions');
       }
     };
 
     fetchUserPermissions();
-  }, [selectedUser]);
+  }, [selectedUser, getUserPermissions]);
 
   // Handle permission toggle
   const handlePermissionToggle = (permissionCode) => {
@@ -118,7 +63,7 @@ useEffect(() => {
         );
       } else {
         // Add new permission with allowed: true
-        const permission = permissions.find(p => p.code === permissionCode);
+        const permission = allPermissions.find(p => p.code === permissionCode);
         if (permission) {
           return [...prev, {
             permissionId: permission.id,
@@ -135,12 +80,11 @@ useEffect(() => {
   // Handle save permissions
   const handleSavePermissions = async () => {
     if (!selectedUser) {
-      setError('Please select a user first.');
+      setLocalError('Please select a user first.');
       return;
     }
 
-    setLoading(prev => ({ ...prev, saving: true }));
-    setError('');
+    setLocalError('');
     setSuccess('');
 
     try {
@@ -148,28 +92,14 @@ useEffect(() => {
         .filter(p => p.allowed)
         .map(p => p.code);
 
-     await axios.post(
-  `${import.meta.env.VITE_API_BASE_URL}/permissions/assign`,
-  {
-    userId: selectedUser,
-    permissions: permissionsToAssign
-  },
-  { withCredentials: true }
-);
-
+      await assignPermissions(selectedUser, permissionsToAssign);
+      setSuccess('Permissions saved successfully!');
       
-      // Refresh user permissions after save
-      const response = await axios.get(
-  `${import.meta.env.VITE_API_BASE_URL}/permissions/user/${selectedUser}`,
-  { withCredentials: true }
-);
-
-      setUserPermissions(response.data.data || []);
+      // Refresh user permissions
+      const updatedPerms = await getUserPermissions(selectedUser);
+      setUserPermissions(updatedPerms || []);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save permissions. Please try again.');
-      console.error('Error saving permissions:', err);
-    } finally {
-      setLoading(prev => ({ ...prev, saving: false }));
+      // Error is already handled in hook
     }
   };
 
@@ -179,50 +109,72 @@ useEffect(() => {
     return permission ? permission.allowed : false;
   };
 
-  if (permissionLoading) {
-  return <div className="p-10 text-center">Loading permissions...</div>;
-}
+  // Clear messages after 5 seconds
+  useEffect(() => {
+    if (localError || success) {
+      const timer = setTimeout(() => {
+        setLocalError('');
+        setSuccess('');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [localError, success]);
 
-if (!hasPermission("VIEW_USER_PERMISSIONS")) {
-  return (
-    <div className="p-10 text-center text-red-600 font-bold">
-      You do not have permission to manage permissions
-    </div>
-  );
-}
+  // Loading state
+  if (loading.getAllPerms && loading.getMyPerms) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <LucideLoader className="h-8 w-8 text-blue-600 animate-spin" />
+        <span className="ml-2 text-gray-600">Loading permissions...</span>
+      </div>
+    );
+  }
 
-
+  // Permission check
+  if (!hasPermission('VIEW_USER_PERMISSIONS') && !hasPermission('ASSIGN_PERMISSIONS')) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+          <div className="flex items-center">
+            <LucideAlertCircle className="h-5 w-5 text-red-500 mr-2" />
+            <p className="text-red-700">You do not have permission to manage permissions</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
-      <div className="mb-8 ">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Permission Management
-        </h1>
-        <p className="text-gray-600">
-          Manage user permissions for EMPLOYEE and PARTNER roles
-        </p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Permission Management
+          </h1>
+          <p className="text-gray-600">
+            Manage user permissions for EMPLOYEE and PARTNER roles
+          </p>
+        </div>
+
+        {/* Create Permission Button */}
+        {hasPermission('CREATE_PERMISSIONS') && (
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center"
+          >
+            <LucidePlus className="h-4 w-4 mr-2" />
+            New Permission
+          </button>
+        )}
       </div>
 
-      {/* 🔒 Button sirf authorized user ke liye */}
- {hasPermission("Create_Permissions") && (
-  <button
-    onClick={() => setIsCreateModalOpen(true)}
-    className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center"
-  >
-    <LucidePlus className="h-4 w-4 mr-2" />
-    New Permission
-  </button>
-)}
-
-
       {/* Error/Success Messages */}
-      {error && (
+      {(localError || hookError) && (
         <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded">
           <div className="flex items-center">
-            <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-            <p className="text-red-700">{error}</p>
+            <LucideAlertCircle className="h-5 w-5 text-red-500 mr-2" />
+            <p className="text-red-700">{localError || hookError}</p>
           </div>
         </div>
       )}
@@ -230,7 +182,7 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
       {success && (
         <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded">
           <div className="flex items-center">
-            <Check className="h-5 w-5 text-green-500 mr-2" />
+            <LucideCheckCircle className="h-5 w-5 text-green-500 mr-2" />
             <p className="text-green-700">{success}</p>
           </div>
         </div>
@@ -241,7 +193,7 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
             <div className="flex items-center mb-6">
-              <User className="h-6 w-6 text-blue-600 mr-2" />
+              <LucideUser className="h-6 w-6 text-blue-600 mr-2" />
               <h2 className="text-xl font-semibold text-gray-800">
                 Select User
               </h2>
@@ -254,7 +206,7 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
               <select
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
-                disabled={loading.users}
+                disabled={loading.getUsers}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="">Select a user</option>
@@ -264,6 +216,12 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
                   </option>
                 ))}
               </select>
+              {loading.getUsers && (
+                <div className="mt-2 flex items-center text-sm text-gray-500">
+                  <LucideLoader className="h-3 w-3 animate-spin mr-1" />
+                  Loading users...
+                </div>
+              )}
             </div>
 
             {selectedUser && (
@@ -275,20 +233,20 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
               </div>
             )}
 
-            {selectedUser && (
+            {selectedUser && hasPermission('ASSIGN_PERMISSIONS') && (
               <button
                 onClick={handleSavePermissions}
-                disabled={loading.saving || loading.userPermissions}
+                disabled={loading.assign || loading.getUserPerms}
                 className="w-full mt-6 px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                {loading.saving ? (
+                {loading.assign ? (
                   <>
-                    <Loader className="h-5 w-5 animate-spin mr-2" />
+                    <LucideLoader className="h-5 w-5 animate-spin mr-2" />
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="h-5 w-5 mr-2" />
+                    <LucideSave className="h-5 w-5 mr-2" />
                     Save Permissions
                   </>
                 )}
@@ -302,44 +260,44 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
           <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center">
-                <Key className="h-6 w-6 text-blue-600 mr-2" />
+                <LucideKey className="h-6 w-6 text-blue-600 mr-2" />
                 <h2 className="text-xl font-semibold text-gray-800">
                   Available Permissions
                 </h2>
               </div>
               {selectedUser && (
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-                  {userPermissions.filter(p => p.allowed).length} of {permissions.length} selected
+                  {userPermissions.filter(p => p.allowed).length} of {allPermissions.length} selected
                 </span>
               )}
             </div>
 
-            {loading.permissions ? (
+            {loading.getAllPerms ? (
               <div className="flex justify-center items-center p-12">
-                <Loader className="h-8 w-8 text-blue-600 animate-spin" />
+                <LucideLoader className="h-8 w-8 text-blue-600 animate-spin" />
               </div>
             ) : !selectedUser ? (
               <div className="text-center p-12 border-2 border-dashed border-gray-300 rounded-xl">
-                <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <LucideUser className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg">
                   Please select a user to view and manage permissions
                 </p>
               </div>
-            ) : loading.userPermissions ? (
+            ) : loading.getUserPerms ? (
               <div className="flex justify-center items-center p-12">
-                <Loader className="h-8 w-8 text-blue-600 animate-spin" />
+                <LucideLoader className="h-8 w-8 text-blue-600 animate-spin" />
               </div>
             ) : (
               <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-                {permissions.map(permission => (
+                {allPermissions.map(permission => (
                   <div
-                    key={permission.id}
-                    onClick={() => handlePermissionToggle(permission.code)}
+                    key={permission.code}
+                    onClick={() => hasPermission('ASSIGN_PERMISSIONS') && handlePermissionToggle(permission.code)}
                     className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md ${
                       isPermissionAllowed(permission.code)
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
-                    } ${loading.saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } ${loading.assign || !hasPermission('ASSIGN_PERMISSIONS') ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className="flex items-center">
                       <div className="flex items-center h-5">
@@ -347,23 +305,26 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
                           type="checkbox"
                           checked={isPermissionAllowed(permission.code)}
                           onChange={() => {}}
+                          disabled={loading.assign || !hasPermission('ASSIGN_PERMISSIONS')}
                           className="h-5 w-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
                         />
                       </div>
-                      <div className="ml-4">
-                        <div className="flex items-center">
-                          <h3 className="text-lg font-medium text-gray-900">
-                            {permission.name}
-                          </h3>
+                      <div className="ml-4 flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-lg font-medium text-gray-900">
+                              {permission.name}
+                            </h3>
+                            <p className="mt-1 text-sm font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded inline-block">
+                              {permission.code}
+                            </p>
+                          </div>
                           {isPermissionAllowed(permission.code) && (
-                            <span className="ml-3 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                               Active
                             </span>
                           )}
                         </div>
-                        <p className="mt-1 text-sm font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded inline-block">
-                          {permission.code}
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -371,12 +332,20 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
               </div>
             )}
 
-            {selectedUser && permissions.length === 0 && !loading.permissions && (
+            {selectedUser && allPermissions.length === 0 && !loading.getAllPerms && (
               <div className="text-center p-12 border-2 border-dashed border-gray-300 rounded-xl">
-                <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <LucideAlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg">
                   No permissions found in the system
                 </p>
+                {hasPermission('CREATE_PERMISSIONS') && (
+                  <button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Create First Permission
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -384,12 +353,12 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
       </div>
 
       {/* Stats Footer */}
-      {selectedUser && permissions.length > 0 && (
+      {selectedUser && allPermissions.length > 0 && (
         <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4">
               <p className="text-2xl font-bold text-gray-900">
-                {permissions.length}
+                {allPermissions.length}
               </p>
               <p className="text-sm text-gray-600">Total Permissions</p>
             </div>
@@ -401,7 +370,9 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
             </div>
             <div className="text-center p-4">
               <p className="text-2xl font-bold text-blue-600">
-                {Math.round((userPermissions.filter(p => p.allowed).length / permissions.length) * 100) || 0}%
+                {allPermissions.length > 0 
+                  ? Math.round((userPermissions.filter(p => p.allowed).length / allPermissions.length) * 100) 
+                  : 0}%
               </p>
               <p className="text-sm text-gray-600">Permission Coverage</p>
             </div>
@@ -409,16 +380,16 @@ if (!hasPermission("VIEW_USER_PERMISSIONS")) {
         </div>
       )}
 
+      {/* Create Permission Modal */}
       <PermissionCreateModal
-  open={isCreateModalOpen}
-  onClose={() => setIsCreateModalOpen(false)}
-  onSuccess={() => {
-    fetchPermissions();           // 🔥 refresh permissions list
-    setIsCreateModalOpen(false);  // close modal
-    setSuccess("Permission created successfully!");
-  }}
-/>
-
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          refreshAll();
+          setIsCreateModalOpen(false);
+          setSuccess("Permission created successfully!");
+        }}
+      />
     </div>
   );
 };

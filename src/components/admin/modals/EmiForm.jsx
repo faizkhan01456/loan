@@ -1,557 +1,314 @@
-// components/admin/EMIVoucherModal.jsx
-import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  Calendar, 
-  Clock,
-  Repeat,
-  AlertCircle,
-  XCircle,
-  CheckCircle,
-  FileText,
-  DollarSign,
-  Percent,
-  Hash
-} from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { X, Loader2, ChevronDown } from "lucide-react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useGenerateEmi } from "../../../hooks/useEmi";
 
-// Mock loan database (replace with API call later)
-const mockLoansDB = [
-  {
-    loanNumber: 'LN-2024-001',
-    customerName: 'Rahul Sharma',
-    loanAmount: 320000,
-    tenure: 24,
-    interestRate: '10.5%',
-    emiAmount: 15000,
-    planName: 'Personal Loan EMI',
-    loanStatus: 'Active',
-    approvedDate: '2024-01-15'
-  },
-  {
-    loanNumber: 'LN-2024-002',
-    customerName: 'Priya Patel',
-    loanAmount: 8500000,
-    tenure: 240,
-    interestRate: '8.75%',
-    emiAmount: 42000,
-    planName: 'Home Loan EMI',
-    loanStatus: 'Active',
-    approvedDate: '2024-01-16'
-  },
-  {
-    loanNumber: 'LN-2024-003',
-    customerName: 'Amit Kumar',
-    loanAmount: 900000,
-    tenure: 60,
-    interestRate: '9.25%',
-    emiAmount: 16500,
-    planName: 'Car Loan EMI',
-    loanStatus: 'Active',
-    approvedDate: '2024-01-17'
-  },
-  {
-    loanNumber: 'LN-2024-004',
-    customerName: 'Sneha Gupta',
-    loanAmount: 700000,
-    tenure: 36,
-    interestRate: '11.2%',
-    emiAmount: 22000,
-    planName: 'Personal Loan EMI',
-    loanStatus: 'Active',
-    approvedDate: '2024-01-18'
-  },
-  {
-    loanNumber: 'LN-2024-005',
-    customerName: 'Rajesh Nair',
-    loanAmount: 1500000,
-    tenure: 48,
-    interestRate: '12.5%',
-    emiAmount: 35000,
-    planName: 'Business Loan EMI',
-    loanStatus: 'Active',
-    approvedDate: '2024-01-19'
-  }
-];
-
-const EmiForm = ({ 
-  isOpen, 
-  onClose, 
-  mode = 'add', 
-  emiVoucher, 
+const EmiForm = ({
+  isOpen,
+  onClose,
+  emiVoucher = {},
   onEmiVoucherChange,
-  emiPlans,
-  calculateEmiPreview,
-  formatCurrency = (amount) => `₹${amount?.toLocaleString() || '0'}`,
-  formatDate,
-  onSave
 }) => {
-  const [loanValidation, setLoanValidation] = useState({
-    status: 'idle', // 'idle', 'validating', 'valid', 'invalid'
-    message: ''
-  });
+  const generateEmi = useGenerateEmi();
+  const [loadingLoan, setLoadingLoan] = useState(false);
+  const [loanNumberInput, setLoanNumberInput] = useState("");
+  const [showLoanDetails, setShowLoanDetails] = useState(false);
 
-  const [isLoanDetailsFetched, setIsLoanDetailsFetched] = useState(false);
-
-  // Initialize form with empty values
+  // RESET FORM WHEN OPENED WITH NEW LOAN
   useEffect(() => {
-    if (isOpen && mode === 'add') {
-      // Reset form when opening in add mode
-      onEmiVoucherChange('loanNumber', '');
-      onEmiVoucherChange('customerName', '');
-      onEmiVoucherChange('planName', '');
-      onEmiVoucherChange('amount', '');
-      onEmiVoucherChange('tenure', '');
-      onEmiVoucherChange('interestRate', '');
-      onEmiVoucherChange('loanAmount', '');
-      onEmiVoucherChange('startDate', '');
-      onEmiVoucherChange('emiTime', '');
-      onEmiVoucherChange('frequency', 'monthly');
-      setLoanValidation({ status: 'idle', message: '' });
-      setIsLoanDetailsFetched(false);
+    if (isOpen && emiVoucher?.loanId) {
+      setLoanNumberInput(emiVoucher.loanNumber || "");
+      setShowLoanDetails(true);
+    } else if (isOpen && !emiVoucher?.loanId) {
+      onEmiVoucherChange({
+        loanNumber: "",
+        loanId: "",
+        customerName: "",
+        approvedAmount: "",
+        interestRate: "",
+        tenureMonths: "",
+        interestType: "FLAT",
+        emiStartDate: "",
+      });
+      setLoanNumberInput("");
+      setShowLoanDetails(false);
     }
   }, [isOpen]);
 
-  // Handle loan number validation and auto-fill
+  // FETCH LOAN BY NUMBER
+  const fetchLoanByNumber = async (loanNumber) => {
+    try {
+      const response = await axios.get(
+        `/api/loan-applications/${loanNumber}`
+      );
+      
+      const loanData = response.data?.data || response.data;
+      return loanData;
+    } catch (error) {
+      console.error("Error fetching loan:", error);
+      throw error;
+    }
+  };
+
+  // HANDLE LOAN NUMBER CHANGE
   const handleLoanNumberChange = async (loanNumber) => {
-    onEmiVoucherChange('loanNumber', loanNumber);
-    
-    if (!loanNumber.trim()) {
-      setLoanValidation({ status: 'idle', message: '' });
-      setIsLoanDetailsFetched(false);
-      return;
+    setLoanNumberInput(loanNumber);
+    onEmiVoucherChange("loanNumber", loanNumber);
+
+    if (!loanNumber.trim() || loanNumber.length < 5) return;
+
+    setLoadingLoan(true);
+
+    try {
+      const loan = await fetchLoanByNumber(loanNumber);
+      console.log("Loan Response =>", loan);
+
+      // Update form with exact field names as per API
+      onEmiVoucherChange({
+        loanId: loan.id || loan._id || "",
+        customerName: loan.applicantName || loan.customerName || "",
+        approvedAmount: loan.approvedAmount || loan.loanAmount || 0,
+        interestRate: loan.interestRate || "",
+        tenureMonths: loan.tenureMonths || loan.tenure || "",
+      });
+
+      setShowLoanDetails(true);
+      toast.success("EMI Details fetched successfully");
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Invalid Loan Number or Loan not found");
+      
+      onEmiVoucherChange({
+        loanId: "",
+        customerName: "",
+        approvedAmount: "",
+        interestRate: "",
+        tenureMonths: "",
+      });
+      setShowLoanDetails(false);
+    } finally {
+      setLoadingLoan(false);
+    }
+  };
+
+  // VALIDATE FORM
+  const validateForm = () => {
+    if (!emiVoucher.emiStartDate) {
+      toast.error("Please select EMI start date");
+      return false;
     }
 
-    setLoanValidation({ status: 'validating', message: 'Validating loan number...' });
+    if (!emiVoucher.approvedAmount || emiVoucher.approvedAmount <= 0) {
+      toast.error("Please enter valid approved amount");
+      return false;
+    }
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const foundLoan = mockLoansDB.find(
-        loan => loan.loanNumber.toLowerCase() === loanNumber.trim().toLowerCase()
-      );
+    if (!emiVoucher.interestRate || emiVoucher.interestRate <= 0) {
+      toast.error("Please enter valid interest rate");
+      return false;
+    }
 
-      if (foundLoan) {
-        // Auto-fill loan details
-        
-        onEmiVoucherChange({
-  customerName: foundLoan.customerName,
-  planName: foundLoan.planName,
-  amount: foundLoan.emiAmount,
-  tenure: foundLoan.tenure,
-  interestRate: foundLoan.interestRate,
-  loanAmount: foundLoan.loanAmount,
-});
+    if (!emiVoucher.tenureMonths || emiVoucher.tenureMonths <= 0) {
+      toast.error("Please enter valid tenure");
+      return false;
+    }
 
-        setLoanValidation({ 
-          status: 'valid', 
-          message: `Loan details fetched successfully! (${foundLoan.planName})` 
-        });
-        setIsLoanDetailsFetched(true);
-      } else {
-        // Clear all fields if invalid loan number
-        onEmiVoucherChange('customerName', '');
-        onEmiVoucherChange('planName', '');
-        onEmiVoucherChange('amount', '');
-        onEmiVoucherChange('tenure', '');
-        onEmiVoucherChange('interestRate', '');
-        onEmiVoucherChange('loanAmount', '');
-        
-        setLoanValidation({ 
-          status: 'invalid', 
-          message: 'Invalid loan number. Please enter a valid loan number from the approved loans list.' 
-        });
-        setIsLoanDetailsFetched(false);
-      }
-    }, 500);
+    return true;
   };
 
-  // Format date for preview
-  const formatPreviewDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
+  // GENERATE EMI
+  const handleGenerateEmi = async () => {
+    if (!validateForm()) return;
 
-  // Calculate EMI preview message
-  const getEmiPreview = () => {
-    if (!emiVoucher.startDate || !emiVoucher.emiTime) return '';
-    
-    const formattedDate = formatPreviewDate(emiVoucher.startDate);
-    const time = emiVoucher.emiTime || '';
-    
-    return `EMI of ${formatCurrency(emiVoucher.amount)} will be debited on ${formattedDate} at ${time} ${emiVoucher.frequency ? `(${emiVoucher.frequency})` : ''}`;
-  };
+    try {
+      // Exact payload as per API requirement
+      const payload = {
+        approvedAmount: Number(emiVoucher.approvedAmount),
+        interestRate: Number(emiVoucher.interestRate),
+        tenureMonths: Number(emiVoucher.tenureMonths),
+        interestType: emiVoucher.interestType || "FLAT",
+        emiStartDate: emiVoucher.emiStartDate,
+      };
 
-  // Check if form is valid for submission
-  const isFormValid = () => {
-    return (
-      isLoanDetailsFetched &&
-      emiVoucher.startDate &&
-      emiVoucher.emiTime &&
-      emiVoucher.customerName &&
-      emiVoucher.amount
-    );
+      console.log("Sending payload:", payload);
+
+      await generateEmi.mutateAsync({
+        loanId: emiVoucher.loanId,
+        payload,
+      });
+
+      toast.success("EMI Generated Successfully");
+      onClose();
+    } catch (error) {
+      console.error("EMI Generation Error:", error);
+      toast.error(error.response?.data?.message || "Failed to generate EMI");
+    }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+      <div className="bg-white w-full max-w-md rounded-lg shadow-xl">
+        
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 bg-blue-600">
-          <div>
-            <h3 className="text-lg font-semibold text-white">
-              {mode === 'add' ? 'Generate EMI from Loan' : 'Edit EMI Voucher'}
-            </h3>
-            <p className="text-sm text-white mt-1">
-              Create EMI schedule based on existing loan
-            </p>
-          </div>
-          <button
+        <div className="flex justify-between items-center p-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800">Generate EMI</h3>
+          <button 
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="p-1 hover:bg-gray-100 rounded transition-colors"
           >
-            <XCircle className="h-5 w-5 text-white" />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
-          <div className="space-y-8">
-            {/* LOAN NUMBER INPUT */}
-            <div>
-              <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Hash className="w-5 h-5 text-blue-600" />
-                Loan Identification
-              </h4>
+        {/* BODY */}
+        <div className="p-5 space-y-4">
+          
+          {/* Loan Number Input with Generate Button */}
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="Loan Number"
+                value={loanNumberInput}
+                onChange={(e) => handleLoanNumberChange(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                disabled={loadingLoan}
+              />
+            </div>
+            <button
+              onClick={() => handleLoanNumberChange(loanNumberInput)}
+              disabled={loadingLoan || !loanNumberInput}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              {loadingLoan ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Generate EMI"
+              )}
+            </button>
+          </div>
+
+          {/* Loan Details Section - Shows only when loan is fetched */}
+          {showLoanDetails && emiVoucher.loanId && (
+            <div className="mt-4 space-y-4 border-t border-gray-200 pt-4">
               
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Loan Number *
-                  <span className="text-xs text-gray-500 ml-2">
-                    Enter approved loan number to fetch details
-                  </span>
+              {/* Customer Name - Read Only */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Customer Name
+                </label>
+                <input
+                  type="text"
+                  value={emiVoucher.customerName || ""}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-gray-600"
+                />
+              </div>
+
+              {/* Approved Amount */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Approved Amount
+                </label>
+                <input
+                  type="number"
+                  value={emiVoucher.approvedAmount || ""}
+                  onChange={(e) => onEmiVoucherChange("approvedAmount", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter approved amount"
+                />
+              </div>
+
+              {/* Interest Rate */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Interest Rate
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={emiVoucher.interestRate || ""}
+                  onChange={(e) => onEmiVoucherChange("interestRate", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter interest rate"
+                />
+              </div>
+
+              {/* Tenure Months */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Tenure (Months)
+                </label>
+                <input
+                  type="number"
+                  value={emiVoucher.tenureMonths || ""}
+                  onChange={(e) => onEmiVoucherChange("tenureMonths", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter tenure in months"
+                />
+              </div>
+
+              {/* Interest Type Dropdown */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Interest Type
                 </label>
                 <div className="relative">
-                  <input
-                    type="text"
-                    value={emiVoucher.loanNumber || ''}
-                    onChange={(e) => handleLoanNumberChange(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10"
-                    placeholder="Enter loan number (e.g., LN-2024-001)"
-                    disabled={mode === 'edit'} // Disable in edit mode
-                  />
-                  {loanValidation.status === 'validating' && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                    </div>
-                  )}
-                  {loanValidation.status === 'valid' && (
-                    <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-600 h-5 w-5" />
-                  )}
-                </div>
-                
-                {/* Validation Messages */}
-                {loanValidation.message && (
-                  <div className={`mt-2 p-3 rounded-lg text-sm ${
-                    loanValidation.status === 'valid' 
-                      ? 'bg-green-50 text-green-700 border border-green-200' 
-                      : loanValidation.status === 'invalid'
-                      ? 'bg-red-50 text-red-700 border border-red-200'
-                      : 'bg-blue-50 text-blue-700 border border-blue-200'
-                  }`}>
-                    <div className="flex items-start gap-2">
-                      {loanValidation.status === 'valid' ? (
-                        <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      )}
-                      <span>{loanValidation.message}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Loan Information Card (Read-only) */}
-              {isLoanDetailsFetched && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
-                  <h5 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Loan Details (Auto-filled)
-                  </h5>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-xs text-gray-500">Customer</p>
-                      <p className="font-medium text-gray-800">{emiVoucher.customerName}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Loan Amount</p>
-                      <p className="font-medium text-gray-800">{formatCurrency(emiVoucher.loanAmount)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Tenure</p>
-                      <p className="font-medium text-gray-800">{emiVoucher.tenure} months</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Interest Rate</p>
-                      <p className="font-medium text-gray-800">{emiVoucher.interestRate}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">EMI Amount</p>
-                      <p className="font-medium text-blue-600">{formatCurrency(emiVoucher.amount)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Plan</p>
-                      <p className="font-medium text-gray-800">{emiVoucher.planName}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* EMI SCHEDULE SETTINGS (Editable Fields) */}
-            {isLoanDetailsFetched && (
-              <div>
-                <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-blue-600" />
-                  EMI Schedule Settings
-                </h4>
-                
-                {/* EMI Preview */}
-                {(emiVoucher.startDate || emiVoucher.emiTime) && (
-                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-blue-800">EMI Schedule Preview</p>
-                        <p className="text-sm text-blue-600 mt-1">
-                          {getEmiPreview()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* EMI Start Date */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      EMI Start Date *
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="date"
-                        value={emiVoucher.startDate || ''}
-                        onChange={(e) => onEmiVoucherChange('startDate', e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        min={new Date().toISOString().split('T')[0]} // Today or future
-                        required
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      First EMI payment date
-                    </p>
-                  </div>
-
-                  {/* EMI Time */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Exact EMI Time (HH:MM) *
-                    </label>
-                    <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="time"
-                        value={emiVoucher.emiTime || ''}
-                        onChange={(e) => onEmiVoucherChange('emiTime', e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Time when EMI will be debited
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Payment Frequency *
-                  </label>
                   <select
-                    value={emiVoucher.frequency || 'monthly'}
-                    onChange={(e) => onEmiVoucherChange('frequency', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={emiVoucher.interestType || "FLAT"}
+                    onChange={(e) => onEmiVoucherChange("interestType", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                   >
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="halfYearly">Half-Yearly</option>
-                    <option value="yearly">Yearly</option>
+                    <option value="FLAT">FLAT</option>
+                    <option value="REDUCING">REDUCING</option>
                   </select>
-                  <p className="text-xs text-gray-500 mt-2">
-                    How often EMI payments will occur
-                  </p>
+                  <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </div>
-            )}
 
-            {/* READ-ONLY LOAN DETAILS (Conditional) */}
-            {isLoanDetailsFetched && (
-              <div className="mt-6">
-                <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-blue-600" />
-                  Loan Details (Read-only)
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Customer Name (Read-only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Customer Name
-                    </label>
-                    <div className="relative">
-                      <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="text"
-                        value={emiVoucher.customerName || ''}
-                        readOnly
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
-                      />
-                    </div>
-                  </div>
-
-                  {/* EMI Plan (Read-only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      EMI Plan Type
-                    </label>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="text"
-                        value={emiVoucher.planName || ''}
-                        readOnly
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
-                      />
-                    </div>
-                  </div>
-
-                  {/* EMI Amount (Read-only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      EMI Amount
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="text"
-                        value={formatCurrency(emiVoucher.amount || 0)}
-                        readOnly
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Loan Amount (Read-only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Total Loan Amount
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="text"
-                        value={formatCurrency(emiVoucher.loanAmount || 0)}
-                        readOnly
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Tenure (Read-only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tenure (Months)
-                    </label>
-                    <input
-                      type="text"
-                      value={emiVoucher.tenure || ''}
-                      readOnly
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
-                    />
-                  </div>
-
-                  {/* Interest Rate (Read-only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Interest Rate
-                    </label>
-                    <div className="relative">
-                      <Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="text"
-                        value={emiVoucher.interestRate || ''}
-                        readOnly
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
-                      />
-                    </div>
-                  </div>
-                </div>
+              {/* EMI Start Date */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  EMI Start Date
+                </label>
+                <input
+                  type="date"
+                  value={emiVoucher.emiStartDate || ""}
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => onEmiVoucherChange("emiStartDate", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                />
               </div>
-            )}
-
-            {/* Validation Message */}
-            {!isFormValid() && mode === 'add' && (
-              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-yellow-800">Action Required</p>
-                    <p className="text-sm text-yellow-600 mt-1">
-                      {!isLoanDetailsFetched 
-                        ? 'Please enter a valid loan number to fetch loan details.'
-                        : 'Please select EMI Start Date and Time to proceed.'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* FOOTER */}
-        <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4 bg-gray-50">
-          <div className="text-sm text-gray-500">
-            {mode === 'add' && isLoanDetailsFetched && (
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>Loan validated. Configure EMI schedule to proceed.</span>
-              </div>
+        <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={handleGenerateEmi}
+            disabled={generateEmi.isPending || !emiVoucher.loanId}
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {generateEmi.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              "Generate EMI"
             )}
-          </div>
-          
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-100 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onSave}
-              disabled={!isFormValid()}
-              className={`px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all ${
-                !isFormValid()
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
-              }`}
-            >
-              {mode === 'add' ? 'Generate EMI Schedule' : 'Update EMI Schedule'}
-            </button>
-          </div>
+          </button>
         </div>
       </div>
     </div>

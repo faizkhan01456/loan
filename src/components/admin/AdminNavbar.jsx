@@ -129,14 +129,6 @@ const Navbar = ({ toggleSidebar }) => {
 
       {/* RIGHT SIDE: Icons & Profile */}
       <div className="flex items-center gap-4 lg:gap-6">
-        
-        {/* Notification Bell with Badge */}
-        <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
-          <Bell size={20} />
-          {/* Red Dot for unread notifications */}
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-        </button>
-
         {/* Separator */}
         <div className="h-8 w-[1px] bg-gray-200 hidden md:block"></div>
 
@@ -201,20 +193,26 @@ const Navbar = ({ toggleSidebar }) => {
             </div>
 
             {/* Dropdown Menu Items */}
-            <a 
-              href="/admin/profile" 
-              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-              onClick={() => setShowDropdown(false)}
-            >
-              <User size={16} /> My Profile
-            </a>
-            <a 
-              href="/admin/settings" 
-              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-              onClick={() => setShowDropdown(false)}
-            >
-              <Settings size={16} /> Settings
-            </a>
+            <button
+  onClick={() => {
+    navigate("/admin/profile");
+    setShowDropdown(false);
+  }}
+  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+>
+  <User size={16} /> My Profile
+</button>
+
+            <button
+  onClick={() => {
+    navigate("/admin/settings");
+    setShowDropdown(false);
+  }}
+  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+>
+  <Settings size={16} /> Settings
+</button>
+
             
             {/* Additional Admin Links */}
             {user?.role === 'ADMIN' && (

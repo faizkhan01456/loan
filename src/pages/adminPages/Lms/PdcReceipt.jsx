@@ -21,8 +21,8 @@ import {
   CreditCard,
   Phone,
 } from "lucide-react";
-import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
-import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
+import ActionMenu from "../../../components/admin/common/ActionMenu";
+import Button from "../../../components/admin/common/Button";
 
 export default function PdcReceipt() {
   const [activeTab, setActiveTab] = useState("pdc");
@@ -167,7 +167,7 @@ export default function PdcReceipt() {
                   <Plus className="w-5 h-5" />
                   Add PDC
                 </button>
-                <ExportButton onClick={handleExport} />
+                <Button onClick={handleExport} />
               </div>
             </div>
 

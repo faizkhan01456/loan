@@ -2,10 +2,12 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 // import { logout } from '../../redux/slices/authSlice';
 import axios from "axios";
 
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
 });
+
 
 // LOGIN
 export const loginUser = createAsyncThunk(
@@ -37,19 +39,25 @@ export const getCurrentUser = createAsyncThunk(
 
 const authSlice = createSlice({
   name: "auth",
-  initialState: {
-    user: null,
-    loading: false,
-    error: null,
-    success: null,
-    isAuthenticated: false,
-  },
+ initialState: {
+  user: null,
+  token: localStorage.getItem("token") || null, // ✅ ADD
+  loading: false,
+  error: null,
+  success: null,
+  isAuthenticated: false,
+},
+
   reducers: {
     logout: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-      localStorage.removeItem("uid");
-    },
+  state.user = null;
+  state.token = null; // ✅ ADD
+  state.isAuthenticated = false;
+
+  localStorage.removeItem("uid");
+  localStorage.removeItem("token"); // ✅ ADD
+},
+
     clearError: (state) => {
       state.error = null;
     },
@@ -67,8 +75,12 @@ const authSlice = createSlice({
         state.success = action.payload.message;
         state.isAuthenticated = true;
 
-        // ✅ ONLY USER ID SAVE
+        // 🔥 SAVE UID
         localStorage.setItem("uid", action.payload.data.id);
+
+        // 🔥 SAVE TOKEN
+        state.token = action.payload.token;
+        localStorage.setItem("token", action.payload.token);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -77,9 +89,16 @@ const authSlice = createSlice({
 
       // CURRENT USER
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        state.user = action.payload.data;
-        state.isAuthenticated = true;
-      })
+  state.user = action.payload.data;
+  state.isAuthenticated = true;
+
+  // ✅ TOKEN RESTORE
+  const token = localStorage.getItem("token");
+  if (token) {
+    state.token = token;
+  }
+})
+
       .addCase(getCurrentUser.rejected, (state) => {
         state.user = null;
         state.isAuthenticated = false;

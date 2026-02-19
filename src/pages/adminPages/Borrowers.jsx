@@ -19,8 +19,8 @@ import {
   X,
   Users,
 } from 'lucide-react';
-import ActionMenu from '../../components/admin/AdminButtons/ActionMenu';
-import ExportButton from '../../components/admin/AdminButtons/ExportButton';
+import ActionMenu from '../../components/admin/common/ActionMenu';
+import Button from '../../components/admin/common/Button';
 
 const Borrowers = () => {
   // State Management
@@ -213,12 +213,12 @@ const Borrowers = () => {
             </div>
             
             <div className="flex flex-wrap gap-3">
-              <ExportButton
+              <Button
                 onClick={exportToCSV}
               >
                 <Download className="w-5 h-5" />
                 Export
-              </ExportButton>
+              </Button>
               <button
                 onClick={() => setShowAddForm(true)}
                 className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

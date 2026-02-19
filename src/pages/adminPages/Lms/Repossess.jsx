@@ -3,9 +3,9 @@ import {
   Search, CheckCircle2,
   Clock, Truck, Package, Wallet, Plus, MoreVertical
 } from "lucide-react";
-import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
-import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
+import ActionMenu from "../../../components/admin/common/ActionMenu";
 import Pagination from "../../../components/admin/common/Pagination";
+import Button from "../../../components/admin/common/Button";
 
 export default function Repossess() {
   const initialRepossessItems = [
@@ -114,7 +114,7 @@ export default function Repossess() {
           <p className="text-gray-500 mt-1">Track and manage asset repossessions.</p>
         </div>
         <div className="flex gap-3">
-          <ExportButton
+          <Button
             label="Export"
             onClick={handleExport}
           />

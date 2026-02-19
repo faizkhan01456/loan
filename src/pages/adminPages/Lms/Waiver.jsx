@@ -12,9 +12,9 @@ import {
   Eye,
   XCircleIcon
 } from "lucide-react";
-import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
-import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
+import ActionMenu from "../../../components/admin/common/ActionMenu";
 import Pagination from "../../../components/admin/common/Pagination";
+import Button from "../../../components/admin/common/Button";
 
 export default function WaiverDashboard() {
   // --- Demo Waiver Data ---
@@ -134,7 +134,7 @@ export default function WaiverDashboard() {
           <p className="text-slate-500 mt-1 ml-11">Manage and audit fee waiver applications.</p>
         </div>
         <div className="flex gap-2">
-        <ExportButton onClick={handleExportWaivers} />
+        <Button onClick={handleExportWaivers} />
         <button 
           onClick={() => setIsModalOpen(true)} 
           className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg flex items-center gap-2 font-medium transition active:scale-95"

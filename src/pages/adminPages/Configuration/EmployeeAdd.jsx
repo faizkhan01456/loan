@@ -169,26 +169,33 @@ const fetchEmployees = async () => {
       withCredentials: true,
     });
 
-    if (res.data?.success) {
-      setEmployees(res.data.data); // 👈 IMPORTANT
-    }
+    console.log("Full API Response:", res.data);
+
+    const employeesData = res.data?.data;
+
+    setEmployees(Array.isArray(employeesData) ? employeesData : []);
   } catch (err) {
     console.error("Failed to fetch employees", err);
+    setEmployees([]); // fallback safety
   }
 };
 
-  // --- FILTERED DATA LOGIC ---
- const filteredEmployees = employees.filter((employee) => {
-  const q = searchQuery.toLowerCase();
 
-  return (
-    employee.fullName?.toLowerCase().includes(q) ||
-    employee.email?.toLowerCase().includes(q) ||
-    employee.contactNumber?.includes(searchQuery) ||
-    employee.employeeId?.toLowerCase().includes(q) ||
-    employee.department?.toLowerCase().includes(q)
-  );
-});
+  // --- FILTERED DATA LOGIC ---
+const filteredEmployees = Array.isArray(employees)
+  ? employees.filter((employee) => {
+      const q = searchQuery.toLowerCase();
+
+      return (
+        employee.fullName?.toLowerCase().includes(q) ||
+        employee.email?.toLowerCase().includes(q) ||
+        employee.phone?.includes(searchQuery) ||
+        employee.employeeId?.toLowerCase().includes(q) ||
+        employee.department?.toLowerCase().includes(q)
+      );
+    })
+  : [];
+
 
   // Get presentations for selected employee
   const getEmployeePresentations = (employeeId) => {
@@ -1150,7 +1157,7 @@ const fetchEmployees = async () => {
                         <div>{employee.contactNumber}</div>
                         <div className="text-xs text-gray-500">Joined: {employee.dateOfJoining}</div>
                       </td>
-                      <td className="px-6 py-4 text-green-600 font-bold text-sm">{employee.salary}</td>
+                      <td className="px-6 py-4 text-green-600 font-bold text-sm">{employee.totalSalary}</td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
                           <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border 

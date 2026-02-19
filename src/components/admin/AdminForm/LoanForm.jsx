@@ -11,11 +11,12 @@ import LoanApplicationPreview from './LoanApplicationPreview';
 
 import {
   useCreateLoan,
-  useGetLoanApplications,
-  useUpdateLoan
 } from "../../../hooks/useLoanApplication";
 
 import { useLoanTypes } from '../../../hooks/useLoan';
+import { useLeadSearch } from '../../../hooks/useLeads';
+import toast from 'react-hot-toast';
+import { useSelector } from 'react-redux';
 
 
 
@@ -28,6 +29,8 @@ const LoanApplicationForm = ({
   onSaveDraft
 }) => {
   const { mutate: submitLoan, isPending, isSuccess, error } = useCreateLoan();
+  const user = useSelector((state) => state.auth.user);
+
   const mapGender = (gender) => {
     if (!gender) return undefined;
 
@@ -43,10 +46,25 @@ const LoanApplicationForm = ({
     }
   };
 
-  const { data: loanTypes = [], isLoading: loanTypesLoading } = useLoanTypes();
+  const [leadNumber, setLeadNumber] = useState("");
+  const {
+    data: leadData,
+    refetch: fetchLead,
+    isFetching: leadLoading,
+    error: leadError,
+  } = useLeadSearch(leadNumber, false);
 
-  const [leadId, setLeadId] = useState("");
-  const [leadLoading, setLeadLoading] = useState(false);
+
+
+  const {
+  data: loanTypesResponse,
+  isLoading: loanTypesLoading,
+} = useLoanTypes();
+
+const loanTypes = loanTypesResponse?.data || [];
+
+
+
   // Form state management
   const [formData, setFormData] = useState({
     // Section 1: Applicant Basic Details
@@ -186,11 +204,6 @@ const LoanApplicationForm = ({
   const [isCalculating, setIsCalculating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
-
-
-
-
-
   // Load initial data if provided
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
@@ -323,50 +336,132 @@ const LoanApplicationForm = ({
   };
 
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  if (!formData.personalDetails.gender) {
+    toast.error("Please select gender");
+    return;
+  }
+
+  if (
+    formData.kycDetails.aadhaarNumber.length !== 12
+  ) {
+    toast.error("Valid Aadhaar required");
+    return;
+  }
 
   const payload = {
-  title: "MR",
+    title: "MR",
 
-  firstName: formData.personalDetails.firstName,
-  lastName: formData.personalDetails.lastName || "",
+    firstName:
+      formData.personalDetails.firstName,
 
-  contactNumber: formData.personalDetails.mobile,
-  gender: mapGender(formData.personalDetails.gender),
+    lastName:
+      formData.personalDetails.lastName || "",
 
-  dob: formData.personalDetails.dob
-    ? new Date(formData.personalDetails.dob)
-    : new Date("1990-01-01"), // fallback
+    gender:
+      mapGender(
+        formData.personalDetails.gender
+      ) || "MALE",
 
-  employmentType:
-    formData.employmentDetails.employmentType === "Salaried"
-      ? "salaried"
-      : "self_employed",
+    dob: formData.personalDetails.dob,
 
-  monthlyIncome: Number(formData.financialDetails.monthlyIncome || 0),
+    contactNumber:
+      formData.personalDetails.mobile,
 
-  loanTypeId: formData.loanDetails.loanTypeId,
-  requestedAmount: Number(formData.loanDetails.loanAmount),
-  tenureMonths: Number(formData.loanDetails.tenureMonths),
-  interestRate: Number(formData.loanDetails.interestRate),
+    aadhaarNumber:
+      formData.kycDetails.aadhaarNumber,
 
-  emiAmount: Number(
-    String(formData.loanDetails.emi || 0).replace(/[₹,]/g, "")
-  ),
+    panNumber:
+      formData.kycDetails.panNumber,
 
-  status: "draft",
-};
+    maritalStatus:
+      formData.personalDetails.maritalStatus?.toUpperCase() ||
+      "SINGLE",
 
+    nationality:
+      formData.personalDetails.nationality ||
+      "Indian",
 
+    category:
+      formData.personalDetails.category?.toUpperCase() ||
+      "GENERAL",
 
-    submitLoan(payload);
+    address:
+      formData.addressDetails.currentAddress.line1 ||
+      "N/A",
+
+    city:
+      formData.addressDetails.currentAddress.city ||
+      "N/A",
+
+    state:
+      formData.addressDetails.currentAddress.state ||
+      "N/A",
+
+    pinCode:
+      formData.addressDetails.currentAddress.pincode ||
+      "000000",
+
+    employmentType:
+      formData.employmentDetails
+        .employmentType === "Salaried"
+        ? "salaried"
+        : "self_employed",
+
+    monthlyIncome: Number(
+      formData.financialDetails.monthlyIncome || 0
+    ),
+
+    annualIncome: Number(
+      formData.financialDetails.monthlyIncome || 0
+    ),
+
+    bankName:
+      formData.financialDetails.bankName ||
+      "N/A",
+
+    bankAccountNumber:
+      formData.financialDetails.accountNumber ||
+      "0000000000",
+
+    ifscCode:
+      formData.financialDetails.ifscCode ||
+      "NA0000000",
+
+    accountType:
+      formData.financialDetails.accountType ||
+      "Saving",
+
+    loanTypeId:
+      formData.loanDetails.loanTypeId,
+
+    requestedAmount: Number(
+      formData.loanDetails.loanAmount
+    ),
+
+    tenureMonths: Number(
+      formData.loanDetails.tenureMonths
+    ),
+
+    interestRate: Number(
+      formData.loanDetails.interestRate || 0
+    ),
+
+    emiAmount: Number(
+      formData.loanDetails.emi || 0
+    ),
+    branchId: user?.branchId,
+
+    status: "draft",
   };
 
-
-
-
-
+  console.log("🚀 PAYLOAD:", payload);
+  console.log("USER:", user);
+console.log("BRANCH ID:", user?.branchId);
+  submitLoan(payload);
+};
 
 
   // Handle save draft
@@ -620,8 +715,8 @@ const LoanApplicationForm = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
                   <option value="">Select</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
@@ -636,8 +731,8 @@ const LoanApplicationForm = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
                   <option value="">Select</option>
-                  <option value="Single">Single</option>
-                  <option value="Married">Married</option>
+                  <option value="SINGLE">Single</option>
+                  <option value="MARRIED">Married</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
@@ -676,7 +771,7 @@ const LoanApplicationForm = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
                   <option value="">Select</option>
-                  <option value="General">General</option>
+                  <option value="GENERAL">General</option>
                   <option value="OBC">OBC</option>
                   <option value="SC">SC</option>
                   <option value="ST">ST</option>
@@ -686,22 +781,22 @@ const LoanApplicationForm = ({
             </div>
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Lead ID (Optional)
+                Lead Number  (Optional)
               </label>
 
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={leadId}
-                  onChange={(e) => setLeadId(e.target.value)}
-                  placeholder="Enter Lead ID"
+                  value={leadNumber}
+                  onChange={(e) => setLeadNumber(e.target.value)}
+                  placeholder="Enter Lead Number"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
 
                 <button
                   type="button"
-                  onClick={fetchLeadById}
-                  disabled={!leadId || leadLoading}
+                  onClick={fetchLeadByNumber}
+                  disabled={!leadNumber || leadLoading}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
                   {leadLoading ? "Fetching..." : "Fetch"}
@@ -1752,10 +1847,10 @@ const LoanApplicationForm = ({
         )}
       </div>
       {error && (
-  <p className="text-red-600 font-semibold">
-    {error?.response?.data?.message || "Something went wrong"}
-  </p>
-)}
+        <p className="text-red-600 font-semibold">
+          {error?.response?.data?.message || "Something went wrong"}
+        </p>
+      )}
 
     </div>
   );
@@ -1780,51 +1875,48 @@ const LoanApplicationForm = ({
     );
   }
 
-  const fetchLeadById = async () => {
-    if (!leadId) return;
+  const fetchLeadByNumber = async () => {
+    if (!leadNumber) return;
 
-    try {
-      setLeadLoading(true);
+    const res = await fetchLead();
 
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/lead/${leadId}`,
-        { withCredentials: true }
-      );
+    const lead = res.data;
 
-      const lead = res.data;
-
-      // 🔥 AUTO FILL FORM
-      setFormData(prev => ({
-        ...prev,
-        personalDetails: {
-          ...prev.personalDetails,
-          firstName: lead.fullName?.split(" ")[0] || "",
-          lastName: lead.fullName?.split(" ").slice(1).join(" ") || "",
-          mobile: lead.contactNumber || "",
-          email: lead.email || ""
-        },
-        addressDetails: {
-          ...prev.addressDetails,
-          currentAddress: {
-            ...prev.addressDetails.currentAddress,
-            city: lead.city || "",
-            state: lead.state || ""
-          }
-        },
-        loanDetails: {
-          ...prev.loanDetails,
-          loanTypeId: lead.loanType?.id || "",
-          loanAmount: lead.loanAmount || ""
-        }
-      }));
-
-    } catch (err) {
-      alert("❌ Invalid Lead ID or Lead not found");
-    } finally {
-      setLeadLoading(false);
+    if (!lead) {
+      toast.error(" Lead not found");
+      return;
     }
-  };
 
+    setFormData((prev) => ({
+      ...prev,
+
+      personalDetails: {
+        ...prev.personalDetails,
+        firstName: lead.fullName?.split(" ")[0] || "",
+        lastName:
+          lead.fullName?.split(" ").slice(1).join(" ") || "",
+        mobile: lead.contactNumber || "",
+        email: lead.email || "",
+      },
+
+      addressDetails: {
+        ...prev.addressDetails,
+        currentAddress: {
+          ...prev.addressDetails.currentAddress,
+          city: lead.city || "",
+          state: lead.state || "",
+        },
+      },
+
+      loanDetails: {
+        ...prev.loanDetails,
+        loanTypeId: lead.loanTypeId || "",
+        loanAmount: lead.loanAmount || "",
+      },
+    }));
+
+    toast.success("Lead data fetched successfully");
+  };
 
   return (
     <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6">

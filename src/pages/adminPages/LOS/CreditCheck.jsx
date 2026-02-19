@@ -1,0 +1,1209 @@
+import React, { useState, useMemo } from 'react';
+import {
+  User, Users, Building, Banknote, Calendar, Phone, IdCard,
+  TrendingUp, AlertCircle, CheckCircle, XCircle, Clock, BarChart,
+  Calculator, FileText, Shield, Target, Percent, DollarSign,
+  CreditCard, Home, Car, Briefcase, Heart, TrendingDown,
+  ChevronDown, Edit, Save, Send, Download, Filter, Search,
+  Lock, Unlock, Eye, Check, X, CalendarDays,
+  IndianRupee, Key, FolderOpen, Loader, ArrowLeft
+} from 'lucide-react';
+
+const CreditCheck = () => {
+  // Loan applications database
+  const [loanApplications, setLoanApplications] = useState([
+    {
+      id: 'LN-2024-1256',
+      applicationNumber: 'LN-2024-1256',
+      loanNumber: 'LON-2024-001',
+      applicantName: 'Rajesh Kumar',
+      coApplicantName: 'Priya Kumar',
+      loanType: 'Home Loan',
+      loanAmount: 2500000,
+      branchName: 'Mumbai Central',
+      currentStage: 'Credit Check',
+      monthlyIncome: 150000,
+      panNumber: 'ABCDE1234F',
+      dob: '15-08-1985',
+      mobile: '+91 9876543210',
+      employmentType: 'Salaried',
+      companyName: 'Tech Solutions Pvt Ltd',
+      tenure: 20,
+      interestRate: 8.5
+    },
+    {
+      id: 'LN-2024-1257',
+      applicationNumber: 'LN-2024-1257',
+      loanNumber: 'LON-2024-002',
+      applicantName: 'Amit Sharma',
+      coApplicantName: null,
+      loanType: 'Personal Loan',
+      loanAmount: 500000,
+      branchName: 'Delhi North',
+      currentStage: 'Credit Check',
+      monthlyIncome: 75000,
+      panNumber: 'EFGHI5678J',
+      dob: '20-05-1990',
+      mobile: '+91 9876543212',
+      employmentType: 'Salaried',
+      companyName: 'Finance Corp',
+      tenure: 5,
+      interestRate: 12.5
+    },
+    {
+      id: 'LN-2024-1258',
+      applicationNumber: 'LN-2024-1258',
+      loanNumber: 'LON-2024-003',
+      applicantName: 'Sunita Patel',
+      coApplicantName: 'Rahul Patel',
+      loanType: 'Business Loan',
+      loanAmount: 1000000,
+      branchName: 'Ahmedabad West',
+      currentStage: 'Credit Check',
+      monthlyIncome: 200000,
+      panNumber: 'JKLMN9012O',
+      dob: '12-12-1980',
+      mobile: '+91 9876543213',
+      employmentType: 'Self-Employed',
+      companyName: 'Patel Traders',
+      tenure: 10,
+      interestRate: 10.5
+    }
+  ]);
+
+  // Selected application state
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  
+  // Search state
+  const [loanNumberInput, setLoanNumberInput] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [recentSearches, setRecentSearches] = useState(['LON-2024-001', 'LON-2024-002']);
+
+  // Credit data for each loan
+  const [creditData, setCreditData] = useState({
+    'LON-2024-001': {
+      creditScores: [
+        { bureau: 'CIBIL', score: 785, status: 'Excellent', color: 'emerald' },
+        { bureau: 'Experian', score: 780, status: 'Excellent', color: 'emerald' },
+        { bureau: 'Equifax', score: 765, status: 'Good', color: 'blue' },
+        { bureau: 'CRIF', score: 790, status: 'Excellent', color: 'emerald' }
+      ],
+      coApplicant: {
+        name: 'Priya Kumar',
+        panNumber: 'PQRST5678G',
+        dob: '22-11-1988',
+        mobile: '+91 9876543211',
+        creditScore: 720,
+        riskCategory: 'Low Risk',
+        employmentType: 'Self-Employed',
+        monthlyIncome: 90000
+      },
+      existingLoans: [
+        {
+          id: 1,
+          loanType: 'Home Loan',
+          bankName: 'HDFC Bank',
+          emiAmount: 25000,
+          outstandingAmount: 1850000,
+          overdueAmount: 0,
+          status: 'Active',
+          statusColor: 'emerald'
+        },
+        {
+          id: 2,
+          loanType: 'Car Loan',
+          bankName: 'ICICI Bank',
+          emiAmount: 12000,
+          outstandingAmount: 320000,
+          overdueAmount: 0,
+          status: 'Active',
+          statusColor: 'emerald'
+        }
+      ],
+      creditAnalysis: {
+        monthlyIncome: 150000,
+        totalExistingEMI: 50000,
+        foirPercentage: 33.33,
+        eligibleEMICapacity: 75000,
+        riskGrade: 'B+',
+        recommendedLoanAmount: 2250000,
+        recommendedTenure: 20,
+        interestRate: 8.5,
+        creditRemarks: 'Applicant has good credit score with manageable existing liabilities. FOIR within acceptable limits.'
+      }
+    },
+    'LON-2024-002': {
+      creditScores: [
+        { bureau: 'CIBIL', score: 650, status: 'Fair', color: 'blue' },
+        { bureau: 'Experian', score: 670, status: 'Fair', color: 'blue' },
+        { bureau: 'Equifax', score: 630, status: 'Fair', color: 'amber' },
+        { bureau: 'CRIF', score: 640, status: 'Fair', color: 'blue' }
+      ],
+      coApplicant: null,
+      existingLoans: [
+        {
+          id: 1,
+          loanType: 'Personal Loan',
+          bankName: 'Axis Bank',
+          emiAmount: 8000,
+          outstandingAmount: 150000,
+          overdueAmount: 15000,
+          status: 'Default',
+          statusColor: 'rose'
+        }
+      ],
+      creditAnalysis: {
+        monthlyIncome: 75000,
+        totalExistingEMI: 8000,
+        foirPercentage: 10.67,
+        eligibleEMICapacity: 37500,
+        riskGrade: 'C',
+        recommendedLoanAmount: 400000,
+        recommendedTenure: 5,
+        interestRate: 12.5,
+        creditRemarks: 'Applicant has average credit score with some overdue payments. Requires further verification.'
+      }
+    },
+    'LON-2024-003': {
+      creditScores: [
+        { bureau: 'CIBIL', score: 720, status: 'Good', color: 'blue' },
+        { bureau: 'Experian', score: 710, status: 'Good', color: 'blue' },
+        { bureau: 'Equifax', score: 730, status: 'Good', color: 'blue' },
+        { bureau: 'CRIF', score: 715, status: 'Good', color: 'blue' }
+      ],
+      coApplicant: {
+        name: 'Rahul Patel',
+        panNumber: 'STUVW3456X',
+        dob: '10-03-1978',
+        mobile: '+91 9876543214',
+        creditScore: 680,
+        riskCategory: 'Medium Risk',
+        employmentType: 'Business',
+        monthlyIncome: 120000
+      },
+      existingLoans: [],
+      creditAnalysis: {
+        monthlyIncome: 200000,
+        totalExistingEMI: 0,
+        foirPercentage: 0,
+        eligibleEMICapacity: 100000,
+        riskGrade: 'A',
+        recommendedLoanAmount: 1000000,
+        recommendedTenure: 10,
+        interestRate: 10.5,
+        creditRemarks: 'Applicant has good credit history with no existing liabilities. Strong candidate for approval.'
+      }
+    }
+  });
+
+  // Decision state for each loan
+  const [decisions, setDecisions] = useState({
+    'LON-2024-001': {
+      status: 'pending',
+      decisionType: '',
+      recommendedAmount: 2250000,
+      recommendedTenure: 20,
+      interestRate: 8.5,
+      riskGrade: 'B+',
+      remarks: '',
+      officerName: 'Credit Officer Sharma',
+      decisionDate: new Date().toISOString().split('T')[0]
+    },
+    'LON-2024-002': {
+      status: 'pending',
+      decisionType: '',
+      recommendedAmount: 400000,
+      recommendedTenure: 5,
+      interestRate: 12.5,
+      riskGrade: 'C',
+      remarks: '',
+      officerName: '',
+      decisionDate: ''
+    },
+    'LON-2024-003': {
+      status: 'pending',
+      decisionType: '',
+      recommendedAmount: 1000000,
+      recommendedTenure: 10,
+      interestRate: 10.5,
+      riskGrade: 'A',
+      remarks: '',
+      officerName: '',
+      decisionDate: ''
+    }
+  });
+
+  // User role
+  const [userRole] = useState('CREDIT_OFFICER');
+
+  // Handle loan number search
+  const handleLoanNumberSearch = () => {
+    if (!loanNumberInput.trim()) {
+      setSearchError('Please enter a loan number');
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError('');
+
+    // Simulate API call delay
+    setTimeout(() => {
+      const foundApplication = loanApplications.find(app => 
+        app.loanNumber.toLowerCase() === loanNumberInput.toLowerCase().trim() ||
+        app.applicationNumber.toLowerCase() === loanNumberInput.toLowerCase().trim()
+      );
+
+      if (foundApplication) {
+        setSelectedApplication(foundApplication);
+        // Add to recent searches
+        if (!recentSearches.includes(loanNumberInput.toUpperCase())) {
+          setRecentSearches(prev => [loanNumberInput.toUpperCase(), ...prev.slice(0, 3)]);
+        }
+      } else {
+        setSearchError(`No loan found with number: ${loanNumberInput}`);
+      }
+      
+      setIsSearching(false);
+    }, 800);
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleLoanNumberSearch();
+    }
+  };
+
+  // Handle recent search click
+  const handleRecentSearchClick = (loanNum) => {
+    setLoanNumberInput(loanNum);
+    const foundApplication = loanApplications.find(app => 
+      app.loanNumber === loanNum || app.applicationNumber === loanNum
+    );
+    if (foundApplication) {
+      setSelectedApplication(foundApplication);
+      setSearchError('');
+    }
+  };
+
+  // Clear search and go back
+  const handleClearSearch = () => {
+    setSelectedApplication(null);
+    setLoanNumberInput('');
+    setSearchError('');
+  };
+
+  // Get current application data
+  const currentCreditData = selectedApplication ? creditData[selectedApplication.loanNumber] : null;
+  const currentDecision = selectedApplication ? decisions[selectedApplication.loanNumber] : null;
+
+  // Calculate total existing EMI
+  const totalExistingEMI = useMemo(() => {
+    if (!currentCreditData) return 0;
+    return currentCreditData.existingLoans.reduce((sum, loan) => sum + loan.emiAmount, 0);
+  }, [currentCreditData]);
+
+  // Calculate FOIR percentage
+  const foirPercentage = useMemo(() => {
+    if (!selectedApplication) return 0;
+    return ((totalExistingEMI / selectedApplication.monthlyIncome) * 100).toFixed(2);
+  }, [totalExistingEMI, selectedApplication]);
+
+  // Calculate eligible EMI capacity (50% of monthly income)
+  const eligibleEMICapacity = useMemo(() => {
+    if (!selectedApplication) return 0;
+    return (selectedApplication.monthlyIncome * 0.5).toFixed(0);
+  }, [selectedApplication]);
+
+  // Handle decision change
+  const handleDecisionChange = (type) => {
+    if (!selectedApplication) return;
+    
+    setDecisions(prev => ({
+      ...prev,
+      [selectedApplication.loanNumber]: {
+        ...prev[selectedApplication.loanNumber],
+        decisionType: type,
+        status: type === 'reject' ? 'rejected' : 'approved',
+        officerName: 'Credit Officer Sharma',
+        decisionDate: new Date().toISOString().split('T')[0]
+      }
+    }));
+  };
+
+  // Handle save decision
+  const handleSaveDecision = () => {
+    if (!selectedApplication) return;
+    alert(`Decision saved for ${selectedApplication.loanNumber}!`);
+  };
+
+  // Handle approve and move
+  const handleApproveMove = () => {
+    if (!selectedApplication) return;
+    alert(`Application ${selectedApplication.loanNumber} approved and moved to underwriting!`);
+  };
+
+  // Handle reject application
+  const handleRejectApplication = () => {
+    if (!selectedApplication || !currentDecision?.remarks.trim()) {
+      alert('Please provide remarks for rejection');
+      return;
+    }
+    alert(`Application ${selectedApplication.loanNumber} rejected!`);
+  };
+
+  // Role permissions
+  const canApprove = userRole === 'CREDIT_OFFICER' || userRole === 'ADMIN';
+  const canEdit = userRole === 'ADMIN';
+
+  // If no application selected, show search screen
+  if (!selectedApplication) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full">
+          {/* Search Card */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                <Key className="text-blue-600" size={32} />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Credit Check Portal</h1>
+              <p className="text-gray-600">
+                Enter loan number to review applicant's creditworthiness
+              </p>
+            </div>
+
+            {/* Search Input */}
+            <div className="mb-8">
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                  <FolderOpen className="text-gray-400" size={20} />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Enter Loan Number (e.g., LON-2024-001) or Application Number"
+                  value={loanNumberInput}
+                  onChange={(e) => {
+                    setLoanNumberInput(e.target.value);
+                    setSearchError('');
+                  }}
+                  onKeyPress={handleKeyPress}
+                  className="w-full pl-12 pr-32 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                  disabled={isSearching}
+                />
+                <button
+                  onClick={handleLoanNumberSearch}
+                  disabled={isSearching || !loanNumberInput.trim()}
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 rounded-lg font-medium transition-all ${
+                    isSearching || !loanNumberInput.trim()
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  {isSearching ? (
+                    <div className="flex items-center gap-2">
+                      <Loader className="animate-spin" size={18} />
+                      <span>Searching...</span>
+                    </div>
+                  ) : (
+                    'Search'
+                  )}
+                </button>
+              </div>
+              
+              {searchError && (
+                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <AlertCircle size={18} />
+                    <span className="font-medium">{searchError}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Recent Searches */}
+            {recentSearches.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Recent Searches</h3>
+                <div className="flex flex-wrap gap-2">
+                  {recentSearches.map((loanNum, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleRecentSearchClick(loanNum)}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                    >
+                      <Clock size={14} />
+                      <span className="font-mono">{loanNum}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Example Loan Numbers */}
+            <div className="border-t border-gray-200 pt-8">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Example Loan Numbers</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <div className="font-mono text-sm text-blue-700 mb-1">LON-2024-001</div>
+                  <div className="text-xs text-gray-600">Rajesh Kumar - Home Loan</div>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <div className="font-mono text-sm text-blue-700 mb-1">LON-2024-002</div>
+                  <div className="text-xs text-gray-600">Amit Sharma - Personal Loan</div>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <div className="font-mono text-sm text-blue-700 mb-1">LON-2024-003</div>
+                  <div className="text-xs text-gray-600">Sunita Patel - Business Loan</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Info */}
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-500">
+              Search by: <span className="font-medium">Loan Number</span>, <span className="font-medium">Application Number</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If application selected, show credit check dashboard
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Application Selection Bar */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleClearSearch}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Search another loan"
+                >
+                  <ArrowLeft size={20} className="text-gray-500" />
+                </button>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Currently Viewing</h2>
+                  <p className="text-sm text-gray-500">Loan number: {selectedApplication.loanNumber}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {/* Quick Search Input */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search another loan..."
+                  value={loanNumberInput}
+                  onChange={(e) => setLoanNumberInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-64"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              </div>
+              
+              <button
+                onClick={handleLoanNumberSearch}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              >
+                Go
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Loan & Applicant Summary Header */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Credit Check Management</h1>
+              <p className="text-gray-600">Review applicant's creditworthiness for loan approval</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="px-4 py-2 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
+                {selectedApplication.currentStage}
+              </span>
+              <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                <Download size={18} />
+                Export Report
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-blue-50 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileText className="text-blue-600" size={20} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Loan Number</p>
+                  <p className="font-bold text-gray-900">{selectedApplication.loanNumber}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-purple-50 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <User className="text-purple-600" size={20} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Primary Applicant</p>
+                  <p className="font-bold text-gray-900">{selectedApplication.applicantName}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-green-50 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Banknote className="text-green-600" size={20} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Loan Amount</p>
+                  <p className="font-bold text-gray-900">₹{selectedApplication.loanAmount.toLocaleString('en-IN')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <Building className="text-amber-600" size={20} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Branch</p>
+                  <p className="font-bold text-gray-900">{selectedApplication.branchName}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-3">
+              <Users size={18} className="text-gray-400" />
+              <div>
+                <p className="text-sm text-gray-500">Co-applicant</p>
+                <p className="font-medium text-gray-900">{selectedApplication.coApplicantName || 'Not Available'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Home size={18} className="text-gray-400" />
+              <div>
+                <p className="text-sm text-gray-500">Loan Type</p>
+                <p className="font-medium text-gray-900">{selectedApplication.loanType}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Calendar size={18} className="text-gray-400" />
+              <div>
+                <p className="text-sm text-gray-500">Tenure</p>
+                <p className="font-medium text-gray-900">{selectedApplication.tenure} years</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Credit Scores & Applicant Info */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* Credit Bureau Scores */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Credit Bureau Scores</h2>
+                <span className="text-sm text-gray-500">Last updated: Today</span>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {currentCreditData?.creditScores.map((bureau, index) => (
+                  <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium text-gray-700">{bureau.bureau}</span>
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-${bureau.color}-100 text-${bureau.color}-700`}>
+                        {bureau.status}
+                      </span>
+                    </div>
+                    <div className="text-center">
+                      <div className={`text-3xl font-bold text-${bureau.color}-600 mb-1`}>
+                        {bureau.score}
+                      </div>
+                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full bg-${bureau.color}-500 rounded-full`}
+                          style={{ width: `${(bureau.score / 900) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Applicant & Co-Applicant Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Primary Applicant Card */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">Primary Applicant</h3>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700`}>
+                    Low Risk
+                  </span>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Name</span>
+                    <span className="font-medium text-gray-900">{selectedApplication.applicantName}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">PAN Number</span>
+                    <span className="font-medium text-gray-900">{selectedApplication.panNumber}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Date of Birth</span>
+                    <span className="font-medium text-gray-900">{selectedApplication.dob}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Mobile</span>
+                    <span className="font-medium text-gray-900">{selectedApplication.mobile}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Credit Score</span>
+                    <span className="text-lg font-bold text-emerald-600">
+                      {currentCreditData?.creditScores[0]?.score || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Employment</span>
+                    <span className="font-medium text-gray-900">{selectedApplication.employmentType}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Co-Applicant Card */}
+              {currentCreditData?.coApplicant && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900">Co-applicant</h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700`}>
+                      Medium Risk
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">Name</span>
+                      <span className="font-medium text-gray-900">{currentCreditData.coApplicant.name}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">PAN Number</span>
+                      <span className="font-medium text-gray-900">{currentCreditData.coApplicant.panNumber}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">Date of Birth</span>
+                      <span className="font-medium text-gray-900">{currentCreditData.coApplicant.dob}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">Mobile</span>
+                      <span className="font-medium text-gray-900">{currentCreditData.coApplicant.mobile}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">Credit Score</span>
+                      <span className="text-lg font-bold text-blue-600">{currentCreditData.coApplicant.creditScore}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">Employment</span>
+                      <span className="font-medium text-gray-900">{currentCreditData.coApplicant.employmentType}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Existing Loans Table */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Existing Loans & Liabilities</h2>
+                <span className="text-sm text-gray-500">Total EMI: ₹{totalExistingEMI.toLocaleString('en-IN')}/month</span>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Bank / NBFC</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">EMI Amount</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Outstanding</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Overdue</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {currentCreditData?.existingLoans.map((loan) => (
+                      <tr key={loan.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {loan.loanType === 'Home Loan' && <Home size={16} className="text-blue-500" />}
+                            {loan.loanType === 'Car Loan' && <Car size={16} className="text-emerald-500" />}
+                            {loan.loanType === 'Personal Loan' && <Briefcase size={16} className="text-purple-500" />}
+                            {loan.loanType === 'Credit Card' && <CreditCard size={16} className="text-amber-500" />}
+                            <span className="font-medium text-gray-900">{loan.loanType}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">{loan.bankName}</td>
+                        <td className="px-4 py-3">
+                          <span className="font-medium text-gray-900">₹{loan.emiAmount.toLocaleString('en-IN')}</span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">₹{loan.outstandingAmount.toLocaleString('en-IN')}</td>
+                        <td className="px-4 py-3">
+                          <span className={`font-medium ${loan.overdueAmount > 0 ? 'text-rose-600' : 'text-gray-700'}`}>
+                            ₹{loan.overdueAmount.toLocaleString('en-IN')}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-${loan.statusColor}-100 text-${loan.statusColor}-700`}>
+                            {loan.status === 'Active' && <CheckCircle size={12} className="mr-1" />}
+                            {loan.status === 'Default' && <AlertCircle size={12} className="mr-1" />}
+                            {loan.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    
+                    {(!currentCreditData?.existingLoans || currentCreditData.existingLoans.length === 0) && (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                          No existing loans found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Total Existing Liabilities</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      ₹{currentCreditData?.existingLoans.reduce((sum, loan) => sum + loan.outstandingAmount, 0).toLocaleString('en-IN') || '0'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500">Monthly EMI Commitment</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      ₹{totalExistingEMI.toLocaleString('en-IN')}/month
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Credit Analysis & Decision */}
+          <div className="space-y-8">
+            
+            {/* Credit Analysis Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Credit Analysis</h2>
+                <Calculator className="text-blue-500" size={24} />
+              </div>
+              
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Monthly Income</span>
+                    <span className="font-bold text-gray-900">₹{selectedApplication.monthlyIncome.toLocaleString('en-IN')}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Total Existing EMI</span>
+                    <span className="font-bold text-rose-600">₹{totalExistingEMI.toLocaleString('en-IN')}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">FOIR Percentage</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`font-bold ${foirPercentage > 50 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        {foirPercentage}%
+                      </span>
+                      <span className={`text-xs px-2 py-1 rounded ${foirPercentage > 50 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                        {foirPercentage > 50 ? 'High Risk' : 'Safe'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
+                      <span>FOIR Progress</span>
+                      <span>{foirPercentage}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${foirPercentage > 50 ? 'bg-rose-500' : foirPercentage > 40 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                        style={{ width: `${Math.min(foirPercentage, 100)}%` }}
+                      />
+                      <div className="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>0%</span>
+                        <span className={`${foirPercentage > 40 ? 'text-amber-600' : 'text-emerald-600'} font-medium`}>40% Safe Limit</span>
+                        <span className={`${foirPercentage > 50 ? 'text-rose-600' : 'text-gray-400'} font-medium`}>50% Max Limit</span>
+                        <span>100%</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Eligible EMI Capacity</span>
+                    <span className="font-bold text-emerald-600">₹{eligibleEMICapacity.toLocaleString('en-IN')}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Risk Grade</span>
+                    <span className="px-3 py-1 rounded-full text-sm font-bold bg-emerald-100 text-emerald-700">
+                      {currentCreditData?.creditAnalysis.riskGrade}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-200">
+                  <h4 className="font-medium text-gray-900 mb-3">Credit Remarks</h4>
+                  <p className="text-sm text-gray-600 bg-blue-50 rounded-lg p-3">
+                    {currentCreditData?.creditAnalysis.creditRemarks}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Credit Officer Decision Panel */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Credit Decision</h2>
+                <div className="flex items-center gap-2">
+                  <Shield className="text-blue-500" size={20} />
+                  <span className="text-sm text-gray-500">{userRole.replace('_', ' ')}</span>
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Decision Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Decision Type
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <button
+                      onClick={() => handleDecisionChange('approve')}
+                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
+                        currentDecision?.decisionType === 'approve'
+                          ? 'border-emerald-500 bg-emerald-50'
+                          : 'border-gray-200 hover:border-emerald-200 hover:bg-emerald-50/50'
+                      }`}
+                      disabled={!canApprove}
+                    >
+                      <CheckCircle className={`${currentDecision?.decisionType === 'approve' ? 'text-emerald-600' : 'text-gray-400'} mb-2`} size={24} />
+                      <span className="font-medium text-sm">Approve</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => handleDecisionChange('conditional')}
+                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
+                        currentDecision?.decisionType === 'conditional'
+                          ? 'border-amber-500 bg-amber-50'
+                          : 'border-gray-200 hover:border-amber-200 hover:bg-amber-50/50'
+                      }`}
+                      disabled={!canApprove}
+                    >
+                      <AlertCircle className={`${currentDecision?.decisionType === 'conditional' ? 'text-amber-600' : 'text-gray-400'} mb-2`} size={24} />
+                      <span className="font-medium text-sm">Conditional</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => handleDecisionChange('reject')}
+                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
+                        currentDecision?.decisionType === 'reject'
+                          ? 'border-rose-500 bg-rose-50'
+                          : 'border-gray-200 hover:border-rose-200 hover:bg-rose-50/50'
+                      }`}
+                      disabled={!canApprove}
+                    >
+                      <XCircle className={`${currentDecision?.decisionType === 'reject' ? 'text-rose-600' : 'text-gray-400'} mb-2`} size={24} />
+                      <span className="font-medium text-sm">Reject</span>
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Recommendation Fields */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Recommended Loan Amount
+                    </label>
+                    <div className="relative">
+                      <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                      <input
+                        type="number"
+                        value={currentDecision?.recommendedAmount || ''}
+                        onChange={(e) => {
+                          if (!selectedApplication) return;
+                          setDecisions(prev => ({
+                            ...prev,
+                            [selectedApplication.loanNumber]: {
+                              ...prev[selectedApplication.loanNumber],
+                              recommendedAmount: e.target.value
+                            }
+                          }));
+                        }}
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        disabled={!canEdit}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Tenure (Years)
+                      </label>
+                      <input
+                        type="number"
+                        value={currentDecision?.recommendedTenure || ''}
+                        onChange={(e) => {
+                          if (!selectedApplication) return;
+                          setDecisions(prev => ({
+                            ...prev,
+                            [selectedApplication.loanNumber]: {
+                              ...prev[selectedApplication.loanNumber],
+                              recommendedTenure: e.target.value
+                            }
+                          }));
+                        }}
+                        className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        disabled={!canEdit}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Interest Rate %
+                      </label>
+                      <div className="relative">
+                        <Percent className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={currentDecision?.interestRate || ''}
+                          onChange={(e) => {
+                            if (!selectedApplication) return;
+                            setDecisions(prev => ({
+                              ...prev,
+                              [selectedApplication.loanNumber]: {
+                                ...prev[selectedApplication.loanNumber],
+                                interestRate: e.target.value
+                              }
+                            }));
+                          }}
+                          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none pr-10"
+                          disabled={!canEdit}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Risk Grade
+                    </label>
+                    <select
+                      value={currentDecision?.riskGrade || ''}
+                      onChange={(e) => {
+                        if (!selectedApplication) return;
+                        setDecisions(prev => ({
+                          ...prev,
+                          [selectedApplication.loanNumber]: {
+                            ...prev[selectedApplication.loanNumber],
+                            riskGrade: e.target.value
+                          }
+                        }));
+                      }}
+                      className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      disabled={!canEdit}
+                    >
+                      <option value="A+">A+ (Excellent)</option>
+                      <option value="A">A (Very Good)</option>
+                      <option value="B+">B+ (Good)</option>
+                      <option value="B">B (Average)</option>
+                      <option value="C">C (Below Average)</option>
+                      <option value="D">D (Poor)</option>
+                    </select>
+                  </div>
+                </div>
+                
+                {/* Remarks */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Credit Officer Remarks
+                  </label>
+                  <textarea
+                    value={currentDecision?.remarks || ''}
+                    onChange={(e) => {
+                      if (!selectedApplication) return;
+                      setDecisions(prev => ({
+                        ...prev,
+                        [selectedApplication.loanNumber]: {
+                          ...prev[selectedApplication.loanNumber],
+                          remarks: e.target.value
+                        }
+                      }));
+                    }}
+                    rows={4}
+                    placeholder="Enter detailed remarks about the credit decision..."
+                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                    disabled={!canApprove}
+                  />
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="space-y-3">
+                  <button
+                    onClick={handleSaveDecision}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                    disabled={!canApprove}
+                  >
+                    <Save size={18} />
+                    Save Decision
+                  </button>
+                  
+                  <button
+                    onClick={handleApproveMove}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+                    disabled={!canApprove || currentDecision?.decisionType !== 'approve'}
+                  >
+                    <Send size={18} />
+                    Approve & Move to Underwriting
+                  </button>
+                  
+                  <button
+                    onClick={handleRejectApplication}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg transition-colors"
+                    disabled={!canApprove || currentDecision?.decisionType !== 'reject'}
+                  >
+                    <X size={18} />
+                    Reject Application
+                  </button>
+                </div>
+                
+                {/* Decision Info */}
+                {currentDecision?.status !== 'pending' && (
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Officer</span>
+                      <span className="font-medium text-gray-900">{currentDecision.officerName}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm mt-1">
+                      <span className="text-gray-500">Decision Date</span>
+                      <span className="font-medium text-gray-900">{currentDecision.decisionDate}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Risk Assessment Summary */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">Risk Assessment Summary</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Credit Score Risk</span>
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-emerald-100 text-emerald-700">
+                    {currentCreditData?.creditScores[0]?.score >= 750 ? 'Low' : 
+                     currentCreditData?.creditScores[0]?.score >= 650 ? 'Medium' : 'High'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">FOIR Risk</span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    foirPercentage > 50 ? 'bg-rose-100 text-rose-700' :
+                    foirPercentage > 40 ? 'bg-amber-100 text-amber-700' :
+                    'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    {foirPercentage > 50 ? 'High' : foirPercentage > 40 ? 'Medium' : 'Low'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Existing Debt Risk</span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    totalExistingEMI > selectedApplication.monthlyIncome * 0.4 ? 'bg-amber-100 text-amber-700' :
+                    totalExistingEMI > selectedApplication.monthlyIncome * 0.2 ? 'bg-blue-100 text-blue-700' :
+                    'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    {totalExistingEMI > selectedApplication.monthlyIncome * 0.4 ? 'Medium' :
+                     totalExistingEMI > selectedApplication.monthlyIncome * 0.2 ? 'Low' : 'Very Low'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Overall Risk Grade</span>
+                  <span className="px-3 py-1 rounded-full text-sm font-bold bg-emerald-100 text-emerald-700">
+                    {currentCreditData?.creditAnalysis.riskGrade}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Bottom Status Bar */}
+        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${
+                  currentCreditData?.creditScores[0]?.score >= 750 ? 'bg-emerald-500' :
+                  currentCreditData?.creditScores[0]?.score >= 650 ? 'bg-blue-500' : 'bg-amber-500'
+                }`}></div>
+                <span className="text-sm text-gray-600">Credit Score: {
+                  currentCreditData?.creditScores[0]?.score >= 750 ? 'Excellent' :
+                  currentCreditData?.creditScores[0]?.score >= 650 ? 'Good' : 'Average'
+                }</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${
+                  foirPercentage > 50 ? 'bg-rose-500' :
+                  foirPercentage > 40 ? 'bg-amber-500' : 'bg-emerald-500'
+                }`}></div>
+                <span className="text-sm text-gray-600">FOIR: {foirPercentage}%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${
+                  totalExistingEMI > selectedApplication.monthlyIncome * 0.4 ? 'bg-amber-500' :
+                  totalExistingEMI > selectedApplication.monthlyIncome * 0.2 ? 'bg-blue-500' : 'bg-emerald-500'
+                }`}></div>
+                <span className="text-sm text-gray-600">Existing Debt: {
+                  totalExistingEMI > selectedApplication.monthlyIncome * 0.4 ? 'High' :
+                  totalExistingEMI > selectedApplication.monthlyIncome * 0.2 ? 'Moderate' : 'Low'
+                }</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Application Status</p>
+              <p className="font-medium text-blue-600">{selectedApplication.currentStage}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CreditCheck;
